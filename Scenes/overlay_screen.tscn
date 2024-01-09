@@ -1,0 +1,308 @@
+[gd_scene load_steps=11 format=3 uid="uid://dd2411n1uv8q"]
+
+[ext_resource type="Script" path="res://Scenes/overlay_screen.gd" id="1_tl85f"]
+[ext_resource type="Theme" uid="uid://bcmjs0qer7m38" path="res://Fonts/MainFont.tres" id="2_y3336"]
+
+[sub_resource type="Animation" id="Animation_458ce"]
+length = 0.001
+
+[sub_resource type="Animation" id="Animation_evc4u"]
+resource_name = "transparency_shift"
+length = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0.501961)]
+}
+
+[sub_resource type="Animation" id="Animation_i5drf"]
+resource_name = "EXPLOSION"
+length = 1.5
+tracks/0/type = "method"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("..")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.1),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [&"screen_obscured"],
+"method": &"emit_signal"
+}]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Buttons/ViewGridButton")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.5),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"hide"
+}, {
+"args": [],
+"method": &"show"
+}]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:self_modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.8, 1.5),
+"transitions": PackedFloat32Array(1, 0.148651, 3.73213, 2.46229),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 0.501961)]
+}
+tracks/3/type = "method"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Buttons/ForegroundButtons")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"hide"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_ghhfa"]
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0.501961)]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Buttons/ViewGridButton")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"hide"
+}, {
+"args": [],
+"method": &"show"
+}]
+}
+tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Buttons/ForegroundButtons/ButtonAnimator")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(1),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": ["fade_in", -1, 1.0, false],
+"method": &"play"
+}]
+}
+tracks/3/type = "method"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Buttons/ForegroundButtons")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"hide"
+}]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_nif4w"]
+_data = {
+"RESET": SubResource("Animation_458ce"),
+"fade_in": SubResource("Animation_evc4u"),
+"impact": SubResource("Animation_i5drf"),
+"slow_reveal": SubResource("Animation_ghhfa")
+}
+
+[sub_resource type="Animation" id="Animation_py4yt"]
+resource_name = "fade_in"
+length = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"show"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_n46wt"]
+resource_name = "fade_out"
+length = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"show"
+}, {
+"args": [],
+"method": &"hide"
+}]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_sr0ig"]
+_data = {
+"fade_in": SubResource("Animation_py4yt"),
+"fade_out": SubResource("Animation_n46wt")
+}
+
+[node name="OverlayScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_tl85f")
+
+[node name="Background" type="ColorRect" parent="."]
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 1
+color = Color(1, 1, 1, 0.5)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Background"]
+libraries = {
+"": SubResource("AnimationLibrary_nif4w")
+}
+
+[node name="Buttons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_y3336")
+
+[node name="ForegroundButtons" type="Control" parent="Buttons"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MainMenuButton" type="Button" parent="Buttons/ForegroundButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.369792
+anchor_top = 0.601852
+anchor_right = 0.614583
+anchor_bottom = 0.736111
+offset_top = -6.10352e-05
+focus_neighbor_left = NodePath("../../ViewGridButton")
+focus_neighbor_bottom = NodePath("../../ViewGridButton")
+focus_next = NodePath("../../ViewGridButton")
+focus_previous = NodePath("../../ViewGridButton")
+text = "Main Menu"
+metadata/_edit_use_anchors_ = true
+
+[node name="ButtonAnimator" type="AnimationPlayer" parent="Buttons/ForegroundButtons"]
+libraries = {
+"": SubResource("AnimationLibrary_sr0ig")
+}
+
+[node name="ViewGridButton" type="Button" parent="Buttons"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 13.0
+offset_top = -150.0
+offset_right = 386.0
+offset_bottom = -34.0
+grow_vertical = 0
+focus_neighbor_top = NodePath("../ForegroundButtons/MainMenuButton")
+focus_neighbor_right = NodePath("../ForegroundButtons/MainMenuButton")
+focus_next = NodePath("../ForegroundButtons/MainMenuButton")
+focus_previous = NodePath("../ForegroundButtons/MainMenuButton")
+toggle_mode = true
+action_mode = 0
+text = "View Grid"
+
+[connection signal="animation_finished" from="Background/AnimationPlayer" to="." method="_on_fade_animation_finished"]
+[connection signal="animation_started" from="Background/AnimationPlayer" to="." method="_on_fade_animation_started"]
+[connection signal="pressed" from="Buttons/ForegroundButtons/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
+[connection signal="toggled" from="Buttons/ViewGridButton" to="." method="_on_view_grid_button_toggled"]

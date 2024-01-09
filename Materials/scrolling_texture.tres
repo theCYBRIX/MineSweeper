@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://bbm3hfxw585c4"]
+
+[ext_resource type="Shader" path="res://Shaders/background.gdshader" id="1_rslsr"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_u1ybf"]
+resource_local_to_scene = true
+load_path = "res://.godot/imported/game_grid.png-d22ff86a959adad1b1a4969d5f929580.ctex"
+
+[resource]
+shader = ExtResource("1_rslsr")
+shader_parameter/direction = Vector2(1, 0)
+shader_parameter/speed_scale = 0.1
+shader_parameter/sampler = SubResource("CompressedTexture2D_u1ybf")

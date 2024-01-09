@@ -1,0 +1,120 @@
+[gd_scene load_steps=7 format=3 uid="uid://b8l3lih4atv74"]
+
+[ext_resource type="Script" path="res://Scenes/pause_screen.gd" id="1_4go44"]
+[ext_resource type="PackedScene" uid="uid://fcwg26iwppii" path="res://Scenes/Settings/settings_menu.tscn" id="2_e0iyf"]
+[ext_resource type="Theme" uid="uid://bcmjs0qer7m38" path="res://Fonts/MainFont.tres" id="2_ucetb"]
+
+[sub_resource type="Animation" id="Animation_2eve4"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_kgmxl"]
+resource_name = "fade_in"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_7m4a4"]
+_data = {
+"RESET": SubResource("Animation_2eve4"),
+"fade_in": SubResource("Animation_kgmxl")
+}
+
+[node name="PauseScreen" type="Control"]
+modulate = Color(1, 1, 1, 0)
+light_mask = 0
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4go44")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.129412, 0.552941, 0.709804, 1)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_7m4a4")
+}
+
+[node name="Buttons" type="Control" parent="."]
+anchors_preset = 0
+anchor_left = 0.382813
+anchor_top = 0.279321
+anchor_right = 0.598958
+anchor_bottom = 0.739198
+theme = ExtResource("2_ucetb")
+metadata/_edit_use_anchors_ = true
+
+[node name="ResumeButton" type="Button" parent="Buttons"]
+layout_mode = 0
+anchor_left = 0.0522088
+anchor_top = 0.0469799
+anchor_right = 0.935743
+anchor_bottom = 0.281879
+focus_neighbor_top = NodePath("../MainMenuButton")
+focus_neighbor_bottom = NodePath("../OptionsButton")
+text = "Resume"
+metadata/_edit_use_anchors_ = true
+
+[node name="OptionsButton" type="Button" parent="Buttons"]
+layout_mode = 0
+anchor_left = 0.0522088
+anchor_top = 0.372483
+anchor_right = 0.935743
+anchor_bottom = 0.607383
+focus_neighbor_top = NodePath("../ResumeButton")
+focus_neighbor_bottom = NodePath("../MainMenuButton")
+text = "Options"
+metadata/_edit_use_anchors_ = true
+
+[node name="MainMenuButton" type="Button" parent="Buttons"]
+layout_mode = 0
+anchor_left = 0.0522088
+anchor_top = 0.704698
+anchor_right = 0.935743
+anchor_bottom = 0.939597
+focus_neighbor_top = NodePath("../OptionsButton")
+focus_neighbor_bottom = NodePath("../ResumeButton")
+text = "Main Menu"
+metadata/_edit_use_anchors_ = true
+
+[node name="SettingsMenu" parent="." instance=ExtResource("2_e0iyf")]
+visible = false
+layout_mode = 1
+hide_grid_settings = true
+hide_default_settings = true
+
+[connection signal="pressed" from="Buttons/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="Buttons/OptionsButton" to="." method="_on_options_button_pressed"]
+[connection signal="pressed" from="Buttons/MainMenuButton" to="." method="_on_quit_button_pressed"]
+[connection signal="end_dialog" from="SettingsMenu" to="." method="_on_settings_menu_end_dialog"]

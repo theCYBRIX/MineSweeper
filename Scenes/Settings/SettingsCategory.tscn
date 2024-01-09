@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://bme8v4sro26wh"]
+
+[node name="Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -797.0
+offset_bottom = -448.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.71, 1.71)
+
+[node name="CategoryLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 22.0
+offset_right = 353.0
+offset_bottom = 71.0
+theme_type_variation = &"HeaderLarge"
+text = "Category"
+
+[node name="SettingsContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+offset_left = 54.0
+offset_top = 71.0
+offset_right = 360.0
+offset_bottom = 627.0

@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3 uid="uid://claggslhd5aad"]
+
+[ext_resource type="PackedScene" uid="uid://dd2411n1uv8q" path="res://Scenes/overlay_screen.tscn" id="1_cb3yp"]
+[ext_resource type="Script" path="res://Scenes/lose_screen.gd" id="2_s8sys"]
+
+[node name="LoseScreen" instance=ExtResource("1_cb3yp")]
+script = ExtResource("2_s8sys")
+
+[node name="Background" parent="." index="0"]
+self_modulate = Color(1, 1, 1, 0.501961)
+color = Color(1, 0.2, 0.2, 1)
+
+[node name="RetryButton" type="Button" parent="Buttons/ForegroundButtons" index="0"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.369792
+anchor_top = 0.4
+anchor_right = 0.614583
+anchor_bottom = 0.534259
+focus_neighbor_left = NodePath("../../ViewGridButton")
+focus_neighbor_top = NodePath("../../ViewGridButton")
+focus_neighbor_bottom = NodePath("../MainMenuButton")
+focus_next = NodePath("../MainMenuButton")
+focus_previous = NodePath("../../ViewGridButton")
+text = "Retry"
+metadata/_edit_use_anchors_ = true
+
+[node name="MainMenuButton" parent="Buttons/ForegroundButtons" index="1"]
+focus_neighbor_top = NodePath("../RetryButton")
+focus_previous = NodePath("../RetryButton")
+
+[node name="ViewGridButton" parent="Buttons" index="1"]
+focus_neighbor_bottom = NodePath("../ForegroundButtons/RetryButton")
+focus_next = NodePath("../ForegroundButtons/RetryButton")
+
+[connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
+[connection signal="pressed" from="Buttons/ForegroundButtons/RetryButton" to="." method="_on_retry_button_pressed"]

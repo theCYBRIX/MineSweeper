@@ -1,0 +1,262 @@
+[gd_scene load_steps=16 format=3 uid="uid://bb5i7co4jg4hx"]
+
+[ext_resource type="Script" path="res://Scenes/GameArea/game_area.gd" id="1_d7hsf"]
+[ext_resource type="Texture2D" uid="uid://bv1eqerwwrsap" path="res://art/mine.png" id="1_r0hvk"]
+[ext_resource type="Texture2D" uid="uid://cjh375rd5agli" path="res://art/flag.png" id="2_qb2og"]
+[ext_resource type="PackedScene" uid="uid://bpk5rurdpmrxp" path="res://Scenes/GameArea/tile_map.tscn" id="3_a53ch"]
+[ext_resource type="PackedScene" uid="uid://daek3ca2fx5t" path="res://Scenes/GameArea/timer_label.tscn" id="4_efyyg"]
+[ext_resource type="Theme" uid="uid://bcmjs0qer7m38" path="res://Fonts/MainFont.tres" id="5_wuuo6"]
+[ext_resource type="Shader" path="res://Shaders/gradient_color_circle.gdshader" id="6_4apjj"]
+[ext_resource type="Script" path="res://Scenes/GameArea/Camera.gd" id="6_irmw6"]
+[ext_resource type="PackedScene" uid="uid://b8l3lih4atv74" path="res://Scenes/pause_screen.tscn" id="8_tic4j"]
+[ext_resource type="PackedScene" uid="uid://claggslhd5aad" path="res://Scenes/lose_screen.tscn" id="10_n1xfe"]
+[ext_resource type="PackedScene" uid="uid://b040ld4j6hkmi" path="res://Scenes/win_screen.tscn" id="11_54yin"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x3bjc"]
+shader = ExtResource("6_4apjj")
+shader_parameter/origin = Vector2(0.5, 0.5)
+shader_parameter/radius = 0.0
+shader_parameter/color = Color(0.878431, 0.878431, 0.878431, 1)
+shader_parameter/gradiantStart = 0.25
+shader_parameter/opacity = 1.0
+
+[sub_resource type="Animation" id="Animation_0qng4"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:material:shader_parameter/Radius")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/Opacity")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_yxhs7"]
+resource_name = "press_indicator"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:material:shader_parameter/radius")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(0.812253, 0.63728),
+"update": 0,
+"values": [0.0, 0.5]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/opacity")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.3),
+"transitions": PackedFloat32Array(0.435275, 0.37893),
+"update": 0,
+"values": [1.0, 0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_l5oa5"]
+_data = {
+"RESET": SubResource("Animation_0qng4"),
+"press_indicator": SubResource("Animation_yxhs7")
+}
+
+[node name="GameArea" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_d7hsf")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.223529, 0.223529, 0.223529, 1)
+
+[node name="HSplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+split_offset = 400
+dragger_visibility = 2
+
+[node name="Panel" type="Panel" parent="HSplitContainer"]
+layout_mode = 2
+
+[node name="MineSymbol" type="TextureRect" parent="HSplitContainer/Panel"]
+layout_mode = 2
+anchor_left = 0.092
+anchor_top = 0.066358
+anchor_right = 0.332
+anchor_bottom = 0.158951
+texture = ExtResource("1_r0hvk")
+expand_mode = 1
+stretch_mode = 5
+metadata/_edit_use_anchors_ = true
+
+[node name="MineLabel" type="Label" parent="HSplitContainer/Panel/MineSymbol"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.23333
+anchor_right = 3.43333
+anchor_bottom = 1.0
+theme_override_font_sizes/font_size = 36
+text = "0"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="FlagSymbol" type="TextureRect" parent="HSplitContainer/Panel"]
+layout_mode = 2
+anchor_left = 0.092
+anchor_top = 0.200617
+anchor_right = 0.332
+anchor_bottom = 0.29321
+texture = ExtResource("2_qb2og")
+expand_mode = 1
+stretch_mode = 5
+metadata/_edit_use_anchors_ = true
+
+[node name="FlagLabel" type="Label" parent="HSplitContainer/Panel/FlagSymbol"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.23333
+anchor_right = 3.41667
+anchor_bottom = 1.0
+theme_override_font_sizes/font_size = 36
+text = "0"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="TimerLabel" parent="HSplitContainer/Panel" instance=ExtResource("4_efyyg")]
+layout_mode = 0
+anchor_left = 0.095
+anchor_top = 0.403704
+anchor_right = 0.9
+anchor_bottom = 0.49537
+offset_right = 0.0
+offset_bottom = 0.0
+metadata/_edit_use_anchors_ = true
+
+[node name="Timer" type="Timer" parent="HSplitContainer/Panel/TimerLabel"]
+process_mode = 1
+
+[node name="Buttons" type="Control" parent="HSplitContainer/Panel"]
+layout_mode = 1
+anchor_top = 0.716049
+anchor_right = 1.0
+anchor_bottom = 0.998457
+theme = ExtResource("5_wuuo6")
+metadata/_edit_use_anchors_ = true
+
+[node name="RecenterButton" type="Button" parent="HSplitContainer/Panel/Buttons"]
+layout_mode = 2
+anchor_left = 0.0325
+anchor_top = 0.0754097
+anchor_right = 0.965
+anchor_bottom = 0.452608
+offset_bottom = 0.954269
+text = "Recenter Grid"
+clip_text = true
+metadata/_edit_use_anchors_ = true
+
+[node name="PauseButton" type="Button" parent="HSplitContainer/Panel/Buttons"]
+layout_mode = 2
+anchor_left = 0.032
+anchor_top = 0.513885
+anchor_right = 0.964
+anchor_bottom = 0.897553
+offset_left = 0.2
+offset_top = 0.264725
+offset_right = 0.399994
+offset_bottom = -0.754242
+text = "Pause"
+clip_text = true
+metadata/_edit_use_anchors_ = true
+
+[node name="TileMapArea" type="SubViewportContainer" parent="HSplitContainer"]
+show_behind_parent = true
+clip_children = 2
+material = SubResource("ShaderMaterial_x3bjc")
+layout_mode = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="HSplitContainer/TileMapArea"]
+disable_3d = true
+transparent_bg = true
+handle_input_locally = false
+canvas_cull_mask = 4293918721
+size = Vector2i(1520, 1080)
+render_target_update_mode = 4
+
+[node name="TileMap" parent="HSplitContainer/TileMapArea/SubViewport" instance=ExtResource("3_a53ch")]
+light_mask = 0
+
+[node name="Camera" type="Camera2D" parent="HSplitContainer/TileMapArea/SubViewport"]
+script = ExtResource("6_irmw6")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="HSplitContainer/TileMapArea"]
+libraries = {
+"": SubResource("AnimationLibrary_l5oa5")
+}
+
+[node name="LoseScreen" parent="." instance=ExtResource("10_n1xfe")]
+visible = false
+layout_mode = 1
+
+[node name="WinScreen" parent="." instance=ExtResource("11_54yin")]
+visible = false
+layout_mode = 1
+
+[node name="PauseScreen" parent="." instance=ExtResource("8_tic4j")]
+visible = false
+top_level = true
+layout_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[connection signal="timeout" from="HSplitContainer/Panel/TimerLabel/Timer" to="." method="_on_timer_timeout"]
+[connection signal="pressed" from="HSplitContainer/Panel/Buttons/RecenterButton" to="." method="recenter_tile_map"]
+[connection signal="pressed" from="HSplitContainer/Panel/Buttons/PauseButton" to="." method="_on_pause_button_pressed"]
+[connection signal="bulk_reveal_ended" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_bulk_reveal_ended"]
+[connection signal="bulk_reveal_started" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_bulk_reveal_started"]
+[connection signal="flag_count_changed" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_flag_count_changed"]
+[connection signal="game_started" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_game_started"]
+[connection signal="lose" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_lose"]
+[connection signal="tile_revealed" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_tile_revealed"]
+[connection signal="win" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_win"]
+[connection signal="retry" from="LoseScreen" to="." method="_on_lose_screen_retry"]
+[connection signal="return_to_main_menu" from="LoseScreen" to="." method="return_to_main_menu"]
+[connection signal="screen_obscured" from="LoseScreen" to="." method="_on_lose_screen_screen_obscured"]
+[connection signal="return_to_main_menu" from="WinScreen" to="." method="return_to_main_menu"]
+[connection signal="quit" from="PauseScreen" to="." method="_on_pause_screen_quit"]
+[connection signal="resume" from="PauseScreen" to="." method="_on_pause_screen_resume"]

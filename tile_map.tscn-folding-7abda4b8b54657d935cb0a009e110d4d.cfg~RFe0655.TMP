@@ -1,0 +1,5 @@
+[folding]
+
+node_unfolds=[NodePath("."), PackedStringArray("Touch timings", "Gestures", "Texture", "tile_set", "layer__array")]
+resource_unfolds=[]
+nodes_folded=[]

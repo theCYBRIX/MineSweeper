@@ -1,0 +1,221 @@
+[gd_scene load_steps=11 format=3 uid="uid://vmpfppad0tfe"]
+
+[ext_resource type="Script" path="res://Scenes/loading_screen.gd" id="1_potdk"]
+[ext_resource type="Texture2D" uid="uid://dwnpw700nb3ak" path="res://art/loading_spiral.png" id="2_aa7l7"]
+
+[sub_resource type="Animation" id="Animation_7hb4h"]
+resource_name = "FADE_IN"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 0.120742),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("..")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.5),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [&"safe_to_load"],
+"method": &"emit_signal"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_r2g1p"]
+resource_name = "FADE_OUT"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("..")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.5),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_5gjsx"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_gjn78"]
+_data = {
+"FADE_IN": SubResource("Animation_7hb4h"),
+"FADE_OUT": SubResource("Animation_r2g1p"),
+"RESET": SubResource("Animation_5gjsx")
+}
+
+[sub_resource type="Animation" id="Animation_mb1q5"]
+resource_name = "FADE_IN"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../../..:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_02g8w"]
+length = 0.001
+loop_mode = 1
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+
+[sub_resource type="Animation" id="Animation_vxynl"]
+resource_name = "Spiral"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 1, 1.41568, 6.28319, -1, -2.07003, 0.25, 0),
+"times": PackedFloat32Array(0, 2)
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ghjlj"]
+_data = {
+"FADE_IN": SubResource("Animation_mb1q5"),
+"RESET": SubResource("Animation_02g8w"),
+"Spiral": SubResource("Animation_vxynl")
+}
+
+[node name="LoadingScreen" type="Control"]
+z_index = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_potdk")
+
+[node name="Background" type="ColorRect" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_force_pass_scroll_events = false
+color = Color(0.101961, 0.341176, 0.6, 1)
+
+[node name="BackgroundAnimator" type="AnimationPlayer" parent="Background"]
+libraries = {
+"": SubResource("AnimationLibrary_gjn78")
+}
+
+[node name="SymbolTimer" type="Timer" parent="Background"]
+wait_time = 0.25
+one_shot = true
+
+[node name="MovingElements" type="Control" parent="Background"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="Background/MovingElements"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.953704
+anchor_right = 1.0
+anchor_bottom = 1.0
+max_value = 1.0
+show_percentage = false
+metadata/_edit_use_anchors_ = true
+
+[node name="LoadingAnchor" type="Control" parent="Background/MovingElements/ProgressBar"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 40.0
+grow_horizontal = 0
+
+[node name="LoadingSymbol" type="Sprite2D" parent="Background/MovingElements/ProgressBar/LoadingAnchor"]
+position = Vector2(-107, -155)
+scale = Vector2(0.215, 0.215)
+texture = ExtResource("2_aa7l7")
+metadata/_edit_use_anchors_ = true
+
+[node name="SymbolAnimator" type="AnimationPlayer" parent="Background/MovingElements/ProgressBar/LoadingAnchor/LoadingSymbol"]
+libraries = {
+"": SubResource("AnimationLibrary_ghjlj")
+}
+
+[node name="ElementsFader" type="AnimationPlayer" parent="Background/MovingElements"]
+process_thread_group = 1
+process_thread_group_order = 0
+process_thread_messages = 2
+root_node = NodePath("../ProgressBar/LoadingAnchor/LoadingSymbol")
+libraries = {
+"": SubResource("AnimationLibrary_ghjlj")
+}
+
+[connection signal="safe_to_load" from="." to="." method="_on_safe_to_load"]
+[connection signal="timeout" from="Background/SymbolTimer" to="." method="_on_symbol_timer_timeout"]

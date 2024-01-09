@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://cqqrijh7b317t"]
+
+[ext_resource type="Script" path="res://Scenes/CustomUI/SFXButton.gd" id="1_q482r"]
+[ext_resource type="AudioStream" uid="uid://d2rjx4kas5i3f" path="res://Audio/click-button.mp3" id="2_36f4q"]
+[ext_resource type="AudioStream" uid="uid://clgnryx6v4ui8" path="res://Audio/hover-button.mp3" id="3_5y70w"]
+
+[node name="SFXButton" type="Button"]
+offset_right = 8.0
+offset_bottom = 8.0
+script = ExtResource("1_q482r")
+
+[node name="ButtonPress" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_36f4q")
+volume_db = -10.0
+
+[node name="ButtonHover" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_5y70w")
+volume_db = -10.0
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="pressed" from="." to="." method="_on_pressed"]

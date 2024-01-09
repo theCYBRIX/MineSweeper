@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3 uid="uid://0gc3hrved1ld"]
+
+[ext_resource type="PackedScene" uid="uid://bme8v4sro26wh" path="res://Scenes/Settings/SettingsCategory.tscn" id="1_mkxi8"]
+[ext_resource type="Script" path="res://Scenes/Settings/graphics_settings.gd" id="1_sw4xq"]
+
+[node name="GraphicsSettings" instance=ExtResource("1_mkxi8")]
+script = ExtResource("1_sw4xq")
+
+[node name="CategoryLabel" parent="." index="0"]
+text = "Graphics"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SettingsContainer" index="0"]
+layout_mode = 2
+
+[node name="WindowModeLabel" type="Label" parent="SettingsContainer/HBoxContainer" index="0"]
+layout_mode = 2
+text = "Window mode:"
+
+[node name="WindowMode" type="OptionButton" parent="SettingsContainer/HBoxContainer" index="1"]
+layout_mode = 2
+item_count = 3
+selected = 2
+popup/item_0/text = "Fullscreen"
+popup/item_0/id = 0
+popup/item_1/text = "Windowed Borderless"
+popup/item_1/id = 1
+popup/item_2/text = "Windowed"
+popup/item_2/id = 2

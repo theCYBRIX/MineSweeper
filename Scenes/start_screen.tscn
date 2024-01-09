@@ -1,0 +1,163 @@
+[gd_scene load_steps=12 format=3 uid="uid://b870xuhjsdy64"]
+
+[ext_resource type="Texture2D" uid="uid://btwtr53jb0f1n" path="res://art/title_text.png" id="1_2w1mk"]
+[ext_resource type="Script" path="res://Scenes/start_screen.gd" id="1_gt68h"]
+[ext_resource type="Shader" uid="uid://b6nher75oarjv" path="res://Shaders/ripple.tres" id="2_viir5"]
+[ext_resource type="Theme" uid="uid://bcmjs0qer7m38" path="res://Fonts/MainFont.tres" id="3_ca7wk"]
+[ext_resource type="PackedScene" uid="uid://fcwg26iwppii" path="res://Scenes/Settings/settings_menu.tscn" id="5_4u2ev"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i4aes"]
+shader = ExtResource("2_viir5")
+shader_parameter/Delay = 8.0
+shader_parameter/Duration = 3.0
+shader_parameter/Radius = 1.0
+shader_parameter/Origin = Vector2(0.5, 0.5)
+shader_parameter/RippleWidth = 0.05
+shader_parameter/RippleColor = Color(0, 0.397833, 0.77, 1)
+shader_parameter/Opacity = 1.0
+
+[sub_resource type="Shader" id="Shader_8dwss"]
+code = "shader_type canvas_item;
+
+uniform sampler2D sampler : repeat_enable, filter_linear_mipmap;
+
+uniform vec2 direction = vec2(1.0, 0.0);
+uniform float speed_scale = 0.1;
+uniform int blur_sample_step_size = 1;
+
+void fragment() {
+	vec2 move = direction * TIME * speed_scale;
+	vec2 sample_position = UV + move;
+	vec3 color = texture(sampler, sample_position).xyz;
+	
+	//color *= 0.16;
+	//color += texture(sampler, sample_position + vec2(0.0, SCREEN_PIXEL_SIZE.y)).xyz * 0.15;
+	//color += texture(sampler, sample_position + vec2(0.0, -SCREEN_PIXEL_SIZE.y)).xyz * 0.15;
+	//color += texture(sampler, sample_position + vec2(0.0, 2.0 * SCREEN_PIXEL_SIZE.y)).xyz * 0.12;
+	//color += texture(sampler, sample_position + vec2(0.0, 2.0 * -SCREEN_PIXEL_SIZE.y)).xyz * 0.12;
+	//color += texture(sampler, sample_position + vec2(0.0, 4.0 * SCREEN_PIXEL_SIZE.y)).xyz * 0.09;
+	//color += texture(sampler, sample_position + vec2(0.0, 4.0 * -SCREEN_PIXEL_SIZE.y)).xyz * 0.09;
+	//color += texture(sampler, sample_position + vec2(0.0, 6.0 * SCREEN_PIXEL_SIZE.y)).xyz * 0.05;
+	//color += texture(sampler, sample_position + vec2(0.0, 6.0 * -SCREEN_PIXEL_SIZE.y)).xyz * 0.05;
+	COLOR.xyz = color;
+}
+"
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_owwh1"]
+resource_local_to_scene = true
+load_path = "res://.godot/imported/game_grid.png-d22ff86a959adad1b1a4969d5f929580.ctex"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cd6xd"]
+resource_local_to_scene = true
+shader = SubResource("Shader_8dwss")
+shader_parameter/direction = Vector2(1, 0)
+shader_parameter/speed_scale = 0.05
+shader_parameter/blur_sample_step_size = 1
+shader_parameter/sampler = SubResource("CompressedTexture2D_owwh1")
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_l0lxq"]
+resource_local_to_scene = true
+load_path = "res://.godot/imported/game_grid.png-d22ff86a959adad1b1a4969d5f929580.ctex"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_prf8s"]
+shader = ExtResource("2_viir5")
+shader_parameter/Delay = 8.0
+shader_parameter/Duration = 2.0
+shader_parameter/Radius = 2.0
+shader_parameter/Origin = Vector2(0, 0)
+shader_parameter/RippleWidth = 0.1
+shader_parameter/RippleColor = Color(1, 1, 1, 1)
+shader_parameter/Opacity = 1.0
+
+[node name="StartScreen" type="Control"]
+material = SubResource("ShaderMaterial_i4aes")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gt68h")
+
+[node name="Background" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_cd6xd")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+texture = SubResource("CompressedTexture2D_l0lxq")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="TitleText" type="TextureRect" parent="."]
+texture_filter = 6
+material = SubResource("ShaderMaterial_prf8s")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0407986
+anchor_top = 0.0817901
+anchor_right = 0.949652
+anchor_bottom = 0.49537
+texture = ExtResource("1_2w1mk")
+expand_mode = 1
+stretch_mode = 5
+metadata/_edit_use_anchors_ = true
+
+[node name="Buttons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_ca7wk")
+
+[node name="NewGameButton" type="Button" parent="Buttons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.365451
+anchor_top = 0.521605
+anchor_right = 0.610243
+anchor_bottom = 0.655864
+focus_next = NodePath("../OptionsButton")
+focus_previous = NodePath("../QuitButton")
+text = "New Game"
+metadata/_edit_use_anchors_ = true
+
+[node name="OptionsButton" type="Button" parent="Buttons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.365451
+anchor_top = 0.692901
+anchor_right = 0.610243
+anchor_bottom = 0.82716
+focus_next = NodePath("../QuitButton")
+focus_previous = NodePath("../NewGameButton")
+text = "Options"
+metadata/_edit_use_anchors_ = true
+
+[node name="QuitButton" type="Button" parent="Buttons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.365451
+anchor_top = 0.864198
+anchor_right = 0.610243
+anchor_bottom = 0.942901
+focus_next = NodePath("../NewGameButton")
+focus_previous = NodePath("../OptionsButton")
+text = "Quit"
+metadata/_edit_use_anchors_ = true
+
+[node name="SettingsMenu" parent="." instance=ExtResource("5_4u2ev")]
+visible = false
+layout_mode = 1
+
+[connection signal="start_game" from="." to="." method="_on_start_game"]
+[connection signal="pressed" from="Buttons/NewGameButton" to="." method="_on_new_game_pressed"]
+[connection signal="pressed" from="Buttons/OptionsButton" to="." method="_on_options_button_pressed"]
+[connection signal="pressed" from="Buttons/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="end_dialog" from="SettingsMenu" to="." method="_on_settings_menu_end_dialog"]
+[connection signal="hidden" from="SettingsMenu" to="." method="_on_settings_menu_hidden"]

@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3 uid="uid://xoahe3a72mdh"]
+
+[ext_resource type="Script" path="res://Scenes/CustomUI/labeled_spin_box.gd" id="1_g4jf8"]
+
+[node name="LabeledSpinBox" type="HSplitContainer"]
+offset_right = 170.0
+offset_bottom = 31.0
+dragger_visibility = 2
+script = ExtResource("1_g4jf8")
+value = 1
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+vertical_alignment = 1
+
+[node name="SpinBox" type="SpinBox" parent="."]
+layout_mode = 2
+min_value = 1.0
+max_value = 500.0
+value = 1.0
+
+[connection signal="value_changed" from="SpinBox" to="." method="_on_spin_box_value_changed"]

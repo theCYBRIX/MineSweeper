@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3 uid="uid://bpk5rurdpmrxp"]
+
+[ext_resource type="Texture2D" uid="uid://uhtpmx4kqrl6" path="res://art/tiles.png" id="1_kjj4o"]
+[ext_resource type="Script" path="res://Scenes/GameArea/tile_map.gd" id="2_kdw6o"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_arw0p"]
+texture = ExtResource("1_kjj4o")
+texture_region_size = Vector2i(256, 256)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_mysn1"]
+tile_size = Vector2i(256, 256)
+sources/0 = SubResource("TileSetAtlasSource_arw0p")
+
+[node name="TileMap" type="TileMap"]
+tile_set = SubResource("TileSet_mysn1")
+format = 2
+layer_0/name = "Tiles"
+layer_0/navigation_enabled = false
+layer_1/name = "Contents"
+layer_1/navigation_enabled = false
+layer_1/tile_data = PackedInt32Array()
+layer_2/name = "Mines"
+layer_2/navigation_enabled = false
+layer_2/tile_data = PackedInt32Array()
+layer_3/name = "Flags"
+layer_3/navigation_enabled = false
+layer_3/tile_data = PackedInt32Array()
+script = ExtResource("2_kdw6o")
+
+[node name="ClickTimer" type="Timer" parent="."]
+wait_time = 0.15

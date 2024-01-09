@@ -1,0 +1,113 @@
+[gd_scene load_steps=7 format=3 uid="uid://fcwg26iwppii"]
+
+[ext_resource type="Script" path="res://Scenes/Settings/SettingsMenu.gd" id="1_dpcus"]
+[ext_resource type="PackedScene" uid="uid://sfu1bae1py40" path="res://Scenes/Settings/game_settings.tscn" id="2_s65sw"]
+[ext_resource type="PackedScene" uid="uid://0gc3hrved1ld" path="res://Scenes/Settings/graphics_settings.tscn" id="2_xcsw7"]
+[ext_resource type="PackedScene" uid="uid://b8qbt2c12hto4" path="res://Scenes/Settings/sound_settings.tscn" id="4_vhf3k"]
+[ext_resource type="PackedScene" uid="uid://dc0qf1nda2l4x" path="res://Scenes/Settings/default_settings.tscn" id="5_5ggdh"]
+[ext_resource type="Theme" uid="uid://bcmjs0qer7m38" path="res://Fonts/MainFont.tres" id="5_wh7wk"]
+
+[node name="SettingsMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dpcus")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.435294, 0.627451, 0.756863, 0.752941)
+
+[node name="UserInterface" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0720486
+anchor_top = 0.0771605
+anchor_right = 0.921007
+anchor_bottom = 0.925926
+offset_right = 0.00012207
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="TabContainer" type="TabContainer" parent="UserInterface"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.872727
+size_flags_vertical = 3
+focus_next = NodePath("../Buttons/ApplyButton")
+focus_previous = NodePath("../Buttons/CloseButton")
+metadata/_edit_use_anchors_ = true
+
+[node name="Game" parent="UserInterface/TabContainer" instance=ExtResource("2_s65sw")]
+layout_mode = 2
+
+[node name="Graphics" parent="UserInterface/TabContainer" instance=ExtResource("2_xcsw7")]
+visible = false
+layout_mode = 2
+
+[node name="Sound" parent="UserInterface/TabContainer" instance=ExtResource("4_vhf3k")]
+visible = false
+layout_mode = 2
+
+[node name="Defaults" parent="UserInterface/TabContainer" instance=ExtResource("5_5ggdh")]
+visible = false
+layout_mode = 2
+
+[node name="Buttons" type="Control" parent="UserInterface"]
+clip_contents = true
+layout_mode = 2
+anchors_preset = 0
+anchor_top = 0.872727
+anchor_right = 1.0
+anchor_bottom = 1.00036
+offset_bottom = -6.10352e-05
+size_flags_vertical = 3
+theme = ExtResource("5_wh7wk")
+metadata/_edit_use_anchors_ = true
+
+[node name="CloseButton" type="Button" parent="UserInterface/Buttons"]
+layout_mode = 2
+anchor_left = 0.0104294
+anchor_top = 0.10955
+anchor_right = 0.13681
+anchor_bottom = 0.85955
+offset_left = 7.62939e-05
+offset_top = 0.182991
+offset_right = -0.000335693
+offset_bottom = 0.435326
+grow_vertical = 2
+focus_neighbor_right = NodePath("../ApplyButton")
+focus_next = NodePath("../../TabContainer")
+focus_previous = NodePath("../ApplyButton")
+text = "Close"
+
+[node name="ApplyButton" type="Button" parent="UserInterface/Buttons"]
+layout_mode = 2
+anchor_left = 0.864213
+anchor_top = 0.106741
+anchor_right = 0.990593
+anchor_bottom = 0.856741
+offset_left = 0.332642
+offset_top = -0.488365
+offset_right = 0.33313
+offset_bottom = -0.236031
+grow_horizontal = 0
+grow_vertical = 2
+focus_neighbor_left = NodePath("../CloseButton")
+focus_next = NodePath("../CloseButton")
+focus_previous = NodePath("../../TabContainer")
+text = "Apply"
+
+[connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
+[connection signal="pressed" from="UserInterface/Buttons/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="pressed" from="UserInterface/Buttons/ApplyButton" to="." method="_on_apply_button_pressed"]
