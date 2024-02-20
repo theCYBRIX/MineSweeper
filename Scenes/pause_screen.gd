@@ -21,7 +21,6 @@ func _shortcut_input(event):
 			return
 		get_viewport().set_input_as_handled()
 
-
 func _on_resume_button_pressed():
 	resume.emit()
 

@@ -9,14 +9,17 @@ script = ExtResource("1_sw4xq")
 [node name="CategoryLabel" parent="." index="0"]
 text = "Graphics"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="SettingsContainer" index="0"]
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsContainer" index="0"]
 layout_mode = 2
 
-[node name="WindowModeLabel" type="Label" parent="SettingsContainer/HBoxContainer" index="0"]
+[node name="WindowSettings" type="HBoxContainer" parent="SettingsContainer/VBoxContainer" index="0"]
+layout_mode = 2
+
+[node name="WindowModeLabel" type="Label" parent="SettingsContainer/VBoxContainer/WindowSettings" index="0"]
 layout_mode = 2
 text = "Window mode:"
 
-[node name="WindowMode" type="OptionButton" parent="SettingsContainer/HBoxContainer" index="1"]
+[node name="WindowMode" type="OptionButton" parent="SettingsContainer/VBoxContainer/WindowSettings" index="1"]
 layout_mode = 2
 item_count = 3
 selected = 2
@@ -26,3 +29,31 @@ popup/item_1/text = "Windowed Borderless"
 popup/item_1/id = 1
 popup/item_2/text = "Windowed"
 popup/item_2/id = 2
+
+[node name="HSeparator" type="HSeparator" parent="SettingsContainer/VBoxContainer" index="1"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="SpeedSetting" type="VBoxContainer" parent="SettingsContainer" index="1"]
+layout_mode = 2
+tooltip_text = "The rate at which the game attempts to change the tile states. Improves load times.
+* Setting this too high may cause stuttering"
+
+[node name="SpeedLabel" type="Label" parent="SettingsContainer/SpeedSetting" index="0"]
+layout_mode = 2
+text = "Grid update speed:"
+
+[node name="SpeedSlider" type="HSlider" parent="SettingsContainer/SpeedSetting" index="1"]
+layout_mode = 2
+step = 0.5
+value = 5.0
+
+[node name="SpeedPercentLabel" type="Label" parent="SettingsContainer/SpeedSetting" index="2"]
+layout_mode = 2
+text = "5%"
+horizontal_alignment = 1
+
+[connection signal="item_selected" from="SettingsContainer/VBoxContainer/WindowSettings/WindowMode" to="." method="_on_window_mode_item_selected"]
+[connection signal="drag_ended" from="SettingsContainer/SpeedSetting/SpeedSlider" to="." method="_on_speed_slider_drag_ended"]
+[connection signal="drag_started" from="SettingsContainer/SpeedSetting/SpeedSlider" to="." method="_on_speed_slider_drag_started"]
+[connection signal="value_changed" from="SettingsContainer/SpeedSetting/SpeedSlider" to="." method="_on_speed_slider_value_changed"]

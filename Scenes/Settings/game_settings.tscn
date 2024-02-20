@@ -38,28 +38,38 @@ value = 20.0
 layout_mode = 2
 text = "Square Grid"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsContainer" index="3"]
+[node name="MineSetting" type="VBoxContainer" parent="SettingsContainer" index="3"]
 layout_mode = 2
 
-[node name="MinesLabel" type="Label" parent="SettingsContainer/VBoxContainer" index="0"]
+[node name="MinesLabel" type="Label" parent="SettingsContainer/MineSetting" index="0"]
 layout_mode = 2
 text = "Mines:"
 
-[node name="MinesSlider" type="HSlider" parent="SettingsContainer/VBoxContainer" index="1"]
+[node name="MinesSlider" type="HSlider" parent="SettingsContainer/MineSetting" index="1"]
 layout_mode = 2
 min_value = 1.0
 max_value = 99.0
 step = 0.5
 value = 10.0
 
-[node name="MinesPercentLabel" type="Label" parent="SettingsContainer/VBoxContainer" index="2"]
+[node name="MinesPercentLabel" type="Label" parent="SettingsContainer/MineSetting" index="2"]
 layout_mode = 2
 text = "10%"
 horizontal_alignment = 1
 
+[node name="FirstSafeOption" type="CheckButton" parent="SettingsContainer" index="4"]
+layout_mode = 2
+tooltip_text = "Guarantees the first tile clicked to be safe."
+button_pressed = true
+text = "First Tile Safe"
+
 [connection signal="value_changed" from="SettingsContainer/RowsInput" to="." method="_on_rows_input_value_changed"]
+[connection signal="value_changed" from="SettingsContainer/ColumnsInput" to="." method="_on_columns_input_value_changed"]
 [connection signal="toggled" from="SettingsContainer/SquareGridOption" to="." method="_on_square_grid_option_toggled"]
-[connection signal="value_changed" from="SettingsContainer/VBoxContainer/MinesSlider" to="." method="_on_mines_slider_value_changed"]
+[connection signal="drag_ended" from="SettingsContainer/MineSetting/MinesSlider" to="." method="_on_mines_slider_drag_ended"]
+[connection signal="drag_started" from="SettingsContainer/MineSetting/MinesSlider" to="." method="_on_mines_slider_drag_started"]
+[connection signal="value_changed" from="SettingsContainer/MineSetting/MinesSlider" to="." method="_on_mines_slider_value_changed"]
+[connection signal="toggled" from="SettingsContainer/FirstSafeOption" to="." method="_on_first_safe_option_toggled"]
 
 [editable path="SettingsContainer/RowsInput"]
 [editable path="SettingsContainer/ColumnsInput"]

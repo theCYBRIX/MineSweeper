@@ -20,6 +20,10 @@ func _shortcut_input(event):
 			return
 		get_viewport().set_input_as_handled()
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if grid_view: view_grid_button.set_pressed(false)
+
 func enter_grid_view():
 	grid_view = true
 	view_grid_button.set_text("Back")

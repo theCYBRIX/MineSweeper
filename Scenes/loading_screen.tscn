@@ -1,7 +1,19 @@
-[gd_scene load_steps=11 format=3 uid="uid://vmpfppad0tfe"]
+[gd_scene load_steps=23 format=3 uid="uid://vmpfppad0tfe"]
 
 [ext_resource type="Script" path="res://Scenes/loading_screen.gd" id="1_potdk"]
-[ext_resource type="Texture2D" uid="uid://dwnpw700nb3ak" path="res://art/loading_spiral.png" id="2_aa7l7"]
+[ext_resource type="Texture2D" uid="uid://cw3evltp8yuko" path="res://art/shovel_animation.png" id="2_au3r1"]
+[ext_resource type="Shader" path="res://Shaders/radius_blur.gdshader" id="2_l4gbs"]
+[ext_resource type="Texture2D" uid="uid://dhtntier2tj62" path="res://art/background_grid.png" id="3_0r56q"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_j0bwe"]
+shader = ExtResource("2_l4gbs")
+shader_parameter/samples_per_layer = 8
+shader_parameter/intensity = 11.68
+shader_parameter/motion = Vector2(1, 0)
+shader_parameter/speed = 0.05
+shader_parameter/blend_color = Color(0.243137, 0.388235, 0.478431, 0)
+shader_parameter/blend_fraction = 0.4
+shader_parameter/darken = 0.18
 
 [sub_resource type="Animation" id="Animation_7hb4h"]
 resource_name = "FADE_IN"
@@ -85,6 +97,101 @@ _data = {
 "RESET": SubResource("Animation_5gjsx")
 }
 
+[sub_resource type="Animation" id="Animation_pnhwx"]
+resource_name = "fade_in"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0.501961)]
+}
+
+[sub_resource type="Animation" id="Animation_h5f5n"]
+resource_name = "fade_out"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_hirga"]
+_data = {
+"fade_in": SubResource("Animation_pnhwx"),
+"fade_out": SubResource("Animation_h5f5n")
+}
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nm16f"]
+atlas = ExtResource("2_au3r1")
+region = Rect2(0, 0, 434, 378)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_julbi"]
+atlas = ExtResource("2_au3r1")
+region = Rect2(434, 0, 434, 378)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wustf"]
+atlas = ExtResource("2_au3r1")
+region = Rect2(0, 378, 434, 378)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u81ll"]
+atlas = ExtResource("2_au3r1")
+region = Rect2(0, 756, 434, 378)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5h8un"]
+atlas = ExtResource("2_au3r1")
+region = Rect2(0, 0, 434, 378)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5a4lt"]
+atlas = ExtResource("2_au3r1")
+region = Rect2(434, 378, 434, 378)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_c2epe"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nm16f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_julbi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wustf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u81ll")
+}],
+"loop": true,
+"name": &"Digging",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5h8un")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_julbi")
+}, {
+"duration": 3.0,
+"texture": SubResource("AtlasTexture_5a4lt")
+}],
+"loop": false,
+"name": &"Explosion",
+"speed": 4.0
+}]
+
 [sub_resource type="Animation" id="Animation_mb1q5"]
 resource_name = "FADE_IN"
 length = 0.5
@@ -104,39 +211,23 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="Animation_02g8w"]
 length = 0.001
 loop_mode = 1
-tracks/0/type = "bezier"
+tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath(".:rotation")
+tracks/0/path = NodePath("../../..:modulate")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"handle_modes": PackedInt32Array(0),
-"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
-"times": PackedFloat32Array(0)
-}
-
-[sub_resource type="Animation" id="Animation_vxynl"]
-resource_name = "Spiral"
-length = 2.0
-loop_mode = 1
-tracks/0/type = "bezier"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:rotation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"handle_modes": PackedInt32Array(0, 0),
-"points": PackedFloat32Array(0, -0.25, 0, 1, 1.41568, 6.28319, -1, -2.07003, 0.25, 0),
-"times": PackedFloat32Array(0, 2)
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ghjlj"]
 _data = {
 "FADE_IN": SubResource("Animation_mb1q5"),
-"RESET": SubResource("Animation_02g8w"),
-"Spiral": SubResource("Animation_vxynl")
+"RESET": SubResource("Animation_02g8w")
 }
 
 [node name="LoadingScreen" type="Control"]
@@ -149,8 +240,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_potdk")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 modulate = Color(1, 1, 1, 0)
+material = SubResource("ShaderMaterial_j0bwe")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -158,7 +250,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_force_pass_scroll_events = false
-color = Color(0.101961, 0.341176, 0.6, 1)
+texture = ExtResource("3_0r56q")
+expand_mode = 1
+stretch_mode = 1
 
 [node name="BackgroundAnimator" type="AnimationPlayer" parent="Background"]
 libraries = {
@@ -169,7 +263,7 @@ libraries = {
 wait_time = 0.25
 one_shot = true
 
-[node name="MovingElements" type="Control" parent="Background"]
+[node name="ForegroundElements" type="Control" parent="Background"]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
@@ -178,7 +272,25 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ProgressBar" type="ProgressBar" parent="Background/MovingElements"]
+[node name="CancelLabel" type="Label" parent="Background/ForegroundElements"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 0
+offset_left = 19.0
+offset_top = 15.0
+offset_right = 519.0
+offset_bottom = 60.0
+text = "Press back to cancel."
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Background/ForegroundElements/CancelLabel"]
+libraries = {
+"": SubResource("AnimationLibrary_hirga")
+}
+
+[node name="FadeInTimer" type="Timer" parent="Background/ForegroundElements/CancelLabel"]
+wait_time = 3.0
+one_shot = true
+
+[node name="ProgressBar" type="ProgressBar" parent="Background/ForegroundElements"]
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.953704
@@ -188,7 +300,7 @@ max_value = 1.0
 show_percentage = false
 metadata/_edit_use_anchors_ = true
 
-[node name="LoadingAnchor" type="Control" parent="Background/MovingElements/ProgressBar"]
+[node name="LoadingAnchor" type="Control" parent="Background/ForegroundElements/ProgressBar"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -197,18 +309,15 @@ offset_left = -40.0
 offset_bottom = 40.0
 grow_horizontal = 0
 
-[node name="LoadingSymbol" type="Sprite2D" parent="Background/MovingElements/ProgressBar/LoadingAnchor"]
-position = Vector2(-107, -155)
-scale = Vector2(0.215, 0.215)
-texture = ExtResource("2_aa7l7")
+[node name="LoadingSymbol" type="AnimatedSprite2D" parent="Background/ForegroundElements/ProgressBar/LoadingAnchor"]
+position = Vector2(-157, -175)
+scale = Vector2(0.75, 0.75)
+sprite_frames = SubResource("SpriteFrames_c2epe")
+animation = &"Explosion"
+autoplay = "Digging"
 metadata/_edit_use_anchors_ = true
 
-[node name="SymbolAnimator" type="AnimationPlayer" parent="Background/MovingElements/ProgressBar/LoadingAnchor/LoadingSymbol"]
-libraries = {
-"": SubResource("AnimationLibrary_ghjlj")
-}
-
-[node name="ElementsFader" type="AnimationPlayer" parent="Background/MovingElements"]
+[node name="ElementsFader" type="AnimationPlayer" parent="Background/ForegroundElements"]
 process_thread_group = 1
 process_thread_group_order = 0
 process_thread_messages = 2
@@ -219,3 +328,4 @@ libraries = {
 
 [connection signal="safe_to_load" from="." to="." method="_on_safe_to_load"]
 [connection signal="timeout" from="Background/SymbolTimer" to="." method="_on_symbol_timer_timeout"]
+[connection signal="timeout" from="Background/ForegroundElements/CancelLabel/FadeInTimer" to="." method="_on_fade_in_timer_timeout"]

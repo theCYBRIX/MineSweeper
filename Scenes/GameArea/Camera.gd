@@ -19,12 +19,13 @@ var grid_size : Vector2
 
 func _ready() -> void:
 	tile_size = Vector2(tile_map.get_tileset().get_tile_size())
-	grid_size = Vector2(Global.get_grid_rect().size)
+	grid_size = Vector2(GlobalSettings.settings.get_size())
 
 func _input(event):
 	if event is InputEventPanGesture:
 		var gesture = event as InputEventPanGesture
 		position += (gesture.get_delta() / zoom) * 2
+		ensure_grid_on_screen()
 		event_handled()
 			
 	elif event is InputEventMagnifyGesture:
@@ -61,16 +62,20 @@ func _input(event):
 						mouse_motion_buffer = mouse_motion
 						return
 				position -= mouse_motion.relative / zoom
+				ensure_grid_on_screen()
 
 func event_handled():
 	tile_map.cancel_click()
 	get_viewport().set_input_as_handled()
 
-#TODO
-func update_position_limits(requested_position : Vector2) -> Vector2:
-	var tile_screen_size = tile_size * tile_map.scale * zoom
-	var visible_area = get_viewport_rect()
-	return clamp(requested_position, visible_area.size.x - tile_screen_size * (grid_size - Vector2.ONE), tile_screen_size)
+func ensure_grid_on_screen():
+	var grid_size = tile_map.get_size()
+	var tile_map_center = tile_map.position + (grid_size / 2)
+	var adjusted_grid_size = (grid_size / 2)
+	
+	var camera_limits : Rect2 = Rect2(tile_map_center - adjusted_grid_size, tile_map_center + adjusted_grid_size)
+	position.x = clamp(position.x, camera_limits.position.x, camera_limits.size.x)
+	position.y = clamp(position.y, camera_limits.position.y, camera_limits.size.y)
 
 func change_zoom(zoom_in : bool):
 	if zoom_in: 
@@ -90,6 +95,7 @@ func zoom_out():
 
 func update_zoom(new_zoom):
 	set_zoom(clamp(new_zoom, min_zoom, max_zoom))
+	ensure_grid_on_screen()
 
 
 func _on_zoom_in_pressed() -> void:

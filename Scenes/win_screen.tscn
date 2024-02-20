@@ -25,6 +25,78 @@ tracks/0/keys = {
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
 }
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("MineTexture:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1015, 468), Vector2(1015, 468)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("MineTexture:size")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(120, 134), Vector2(120, 134)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("MineTexture/MineLabel:theme_override_font_sizes/font_size")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0, 74]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("FinalTime:position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(691, 259), Vector2(691, 259)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("FinalTime:size")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(504, 144), Vector2(504, 144)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("FinalTime:theme_override_font_sizes/font_size")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [1, 86]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_e41y1"]
 _data = {
@@ -35,19 +107,26 @@ _data = {
 script = ExtResource("2_mytnc")
 initial_summary_tween_time = 1.5
 quick_summary_tween_time = 0.5
+mine_texture_target_rect = Rect2(0, 0, 0, 0)
+mine_label_target_font_size = 0
+timer_label_target_rect = Rect2(0, 0, 0, 0)
+timer_target_font_size = 0
 
 [node name="Background" parent="." index="0"]
 self_modulate = Color(1, 1, 1, 0.401569)
 color = Color(0.509804, 1, 0.329412, 1)
 
 [node name="MineTexture" type="TextureRect" parent="." index="1"]
-unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.528646
+anchor_left = 0.525
 anchor_top = 0.433333
-anchor_right = 0.591146
+anchor_right = 0.5875
 anchor_bottom = 0.557407
+offset_left = 6.99969
+offset_top = 0.000335693
+offset_right = 6.99976
+offset_bottom = 0.000427246
 texture = ExtResource("3_oxh2i")
 expand_mode = 1
 stretch_mode = 5
@@ -56,20 +135,20 @@ metadata/_edit_use_anchors_ = true
 [node name="MineLabel" type="Label" parent="MineTexture" index="0"]
 show_behind_parent = true
 layout_mode = 1
-anchors_preset = 6
+anchors_preset = -1
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = 8.0
-offset_top = -40.5
-offset_right = 90.0002
-offset_bottom = 42.5
-grow_horizontal = 0
+offset_left = 7.99988
+offset_top = -41.5
+offset_right = 89.9999
+offset_bottom = 41.5
 grow_vertical = 2
 theme = SubResource("Theme_cjy0n")
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 74
 text = "40"
 vertical_alignment = 1
 
@@ -79,23 +158,29 @@ anchor_left = 0.359896
 anchor_top = 0.239815
 anchor_right = 0.622396
 anchor_bottom = 0.373148
-offset_right = 0.0
-offset_bottom = 0.0
+offset_left = -0.000305176
+offset_top = -0.000183105
+offset_right = -0.000244141
+offset_bottom = 0.000152588
 theme_override_colors/font_color = Color(0, 1, 0.160784, 1)
 theme_override_font_sizes/font_size = 86
 metadata/_edit_use_anchors_ = true
 
 [node name="GridDimensions" type="Label" parent="." index="3"]
-layout_mode = 0
-anchor_left = 0.369792
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.349479
 anchor_top = 0.457407
-anchor_right = 0.492188
+anchor_right = 0.471875
 anchor_bottom = 0.546296
+grow_horizontal = 0
 theme = SubResource("Theme_cjy0n")
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_y = 10
 theme_override_constants/outline_size = 7
 text = "20x20"
+horizontal_alignment = 1
+vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="ForegroundAnimator" type="AnimationPlayer" parent="." index="4"]
@@ -106,9 +191,6 @@ libraries = {
 [node name="Buttons" parent="." index="5"]
 metadata/_edit_group_ = true
 metadata/_edit_lock_ = true
-
-[node name="ForegroundButtons" parent="Buttons" index="0"]
-modulate = Color(1, 1, 1, 0.8)
 
 [connection signal="grid_view_toggled" from="." to="." method="_on_grid_view_toggled"]
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]

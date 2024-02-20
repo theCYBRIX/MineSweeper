@@ -6,80 +6,87 @@ extends Control
 @onready var flag_symbol: TextureRect = $HSplitContainer/Panel/FlagSymbol
 @onready var flag_label = $HSplitContainer/Panel/FlagSymbol/FlagLabel
 
+@onready var pause_screen = $PauseScreen
+@onready var win_screen: Control = $WinScreen
+
 @onready var tile_map_viewport = $HSplitContainer/TileMapArea/SubViewport
 @onready var tile_map = $HSplitContainer/TileMapArea/SubViewport/TileMap
-@onready var timer_label = $HSplitContainer/Panel/TimerLabel
-@onready var timer = $HSplitContainer/Panel/TimerLabel/Timer
+
+@onready var timer_label : Label = $HSplitContainer/Panel/TimerLabel
+@onready var timer : Timer = $HSplitContainer/Panel/TimerLabel/Timer
+
 @onready var tile_map_camera = $HSplitContainer/TileMapArea/SubViewport/Camera
-@onready var pause_screen = $PauseScreen
 @onready var buttons = $HSplitContainer/Panel/Buttons
 @onready var recenter_button = $HSplitContainer/Panel/Buttons/RecenterButton
 @onready var pause_button = $HSplitContainer/Panel/Buttons/PauseButton
-@onready var win_screen: Control = $WinScreen
+@onready var animation_player: AnimationPlayer = $HSplitContainer/TileMapArea/AnimationPlayer
+
+@onready var ready_screen: Control = $ReadyScreen
 
 @export_group("Timer Colors", "timer")
 @export_color_no_alpha var timer_active_color : Color = Color(0.812, 0.161, 0.161)
 @export_color_no_alpha var timer_halted_color : Color = Color(0.071, 0.875, 0.161)
 @export_color_no_alpha var timer_waiting_color : Color = Color(0.8, 0.788, 0.129)
 
-var sound_fx_enabled : bool = false
-
-var elapsed_time = 0
 var game_ongoing : bool = false
 var paused : bool = false
 
 var timer_color_tween : Tween
 
-var tile_map_placeholder : Node
-
-var loading_thread : Thread
+var initializing : bool = true
+var new_game : bool = false
 
 func _ready():
 	hide()
 	tile_map.hide()
 	
-	#tile_map_placeholder = Node.new()
-	#tile_map.call_deferred("replace_by", tile_map_placeholder)
-	#await tile_map.tree_exited
-	
-	#WorkerThreadPool.add_task(prepare.bind())
-	loading_thread = Thread.new()
-	loading_thread.start(prepare.bind())
-	
-	
-	timer_label.add_theme_color_override("font_color", timer_halted_color)
-	flag_label.set_text(str(tile_map.get_flag_count()))
-	mine_label.set_text(str(Global.get_mines()))
-
-func release_loading_thread():
-	if loading_thread and loading_thread.is_started():
-		loading_thread.wait_to_finish()
+	WorkerThreadPool.add_task(prepare.bind())
 
 func prepare():
-	#var tree = SceneTree.new()
-	#tree.root.add_child(tile_map)
+	var game_state : GameState = GlobalSettings.get_initial_game_state()
 	
-	tile_map.prepare_grid()
-	
-	#tree.root.remove_child(tile_map)
-	#tile_map_placeholder.call_deferred("replace_by", tile_map)
+	tile_map.prepare_grid(game_state)
 	call_deferred("show")
 	tile_map.call_deferred("show")
-	call_deferred("recenter_tile_map")
+	call_deferred("refresh_ui")
+	
+	initializing = false
 	SceneLoader.hide_loading_screen()
-	call_deferred("release_loading_thread")
+
+func refresh_ui():
+	recenter_tile_map()
+	timer_label.add_theme_color_override("font_color", timer_halted_color)
+	update_timer_text()
+	flag_label.set_text(str(tile_map.get_flag_count()))
+	mine_label.set_text(str(GlobalSettings.get_mines()))
+	if GlobalSettings.use_saved_state:
+		ready_screen.show()
+	else:
+		$HSplitContainer/TileMapArea.grab_focus()
 
 func _shortcut_input(event):
-	if (not paused) and game_ongoing:
+	if (not paused) and not tile_map.game_over:
 		if event.is_action_pressed("ui_cancel"):
-			pause()
-		elif event.is_action_pressed("ui_focus_next"):
-			recenter_button.grab_focus()
-		elif event.is_action_pressed("ui_focus_prev"):
-			pause_button.grab_focus()
+			if initializing:
+				SceneLoader.hide_loading_screen()
+				return_to_main_menu()
+			else:
+				pause()
 		else:
 			return
 		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if tile_map.game_over: return
+		if initializing:
+			SceneLoader.hide_loading_screen()
+			return_to_main_menu()
+		elif not paused:
+			pause()
+	
+
 
 func recenter_tile_map():
 	tile_map_camera.reset()
@@ -87,17 +94,29 @@ func recenter_tile_map():
 
 func _on_tile_map_flag_count_changed(num_flags : int):
 	flag_label.set_text(str(num_flags))
-	$HSplitContainer/TileMapArea.material.set_shader_parameter("origin", $HSplitContainer/TileMapArea.get_local_mouse_position() / $HSplitContainer/TileMapArea.size)
-	$HSplitContainer/TileMapArea/AnimationPlayer.stop()
-	$HSplitContainer/TileMapArea/AnimationPlayer.play("press_indicator")
-	Global.flag_toggled()
+	animation_player.stop()
+	animation_player.play("press_indicator")
+	SoundManager.flag_toggled()
 
 func _on_timer_timeout():
-	elapsed_time += 1
-	var minutes = int(elapsed_time / 60)
-	var seconds = elapsed_time % 60
-	timer_label.set_text(("%d:%d" if seconds >= 10 else "%d:0%d") % [minutes, seconds])
+	tile_map.game_state.time_elapsed += 1
+	update_timer_text()
 
+func update_timer_text():
+	var elapsed_time : int = int(tile_map.game_state.time_elapsed)
+	var minutes : int  = elapsed_time / 60
+	var hours : int = minutes / 60
+	minutes = minutes % 60
+	var seconds : int = elapsed_time % 60
+	
+	var label_text : String = ""
+	if hours > 0:
+		label_text += "%d:" % [hours]
+		label_text += "%0*d:" % [2, minutes]
+	else:
+		label_text += "%d:" % [minutes]
+	label_text += "%0*d" % [2, seconds]
+	timer_label.set_text(label_text)
 
 func _on_tile_map_win():
 	timer.stop()
@@ -118,14 +137,16 @@ func _on_tile_map_win():
 	win_screen.prepare_animation()
 	
 	win_screen.show()
+	GlobalSettings.delete_saved_game_state()
 
 
 func _on_tile_map_lose():
-	Global.mine_exploded()
+	SoundManager.mine_exploded()
 	game_ongoing = false
 	timer.stop()
 	buttons.hide()
 	$LoseScreen.show()
+	GlobalSettings.delete_saved_game_state()
 
 
 func switch_scene(next : String):
@@ -155,6 +176,7 @@ func on_game_area_loaded(game_area : PackedScene):
 
 
 func return_to_main_menu():
+	GlobalSettings.game_state = null
 	switch_scene("start_screen")
 
 
@@ -165,12 +187,14 @@ func _on_pause_screen_resume():
 	resume()
 
 func _on_pause_screen_quit():
-	switch_scene("start_screen")
+	if game_ongoing:
+		tile_map.game_state.time_elapsed += (timer.wait_time - timer.time_left)
+		GlobalSettings.save_game_state(tile_map.game_state)
+	return_to_main_menu()
 
 
 func _on_tile_map_game_started():
 	tween_timer_color(timer_active_color, 0.5)
-	#timer_label.add_theme_color_override("font_color", timer_active_color)
 	if not tile_map.game_over:
 		timer.start()
 		game_ongoing = true
@@ -206,17 +230,14 @@ func _on_tile_map_bulk_reveal_ended():
 func resume_timer():
 	timer.set_paused(false)
 	tween_timer_color(timer_active_color, 1)
-	#timer_label.add_theme_color_override("font_color", timer_active_color)
 
 func pause_timer():
 	timer.set_paused(true)
 	tween_timer_color(timer_halted_color, 1)
-	#timer_label.add_theme_color_override("font_color", )
 
 func wait_timer():
 	timer.set_paused(true)
 	tween_timer_color(timer_waiting_color, 1)
-	#timer_label.add_theme_color_override("font_color", timer_waiting_color)
 
 
 func tween_timer_color(to, timespan):
@@ -232,4 +253,26 @@ func override_timer_color(color : Color):
 
 
 func _on_tile_map_tile_revealed():
-	Global.tile_revealed()
+	SoundManager.tile_revealed()
+
+
+func _on_ready_screen_start() -> void:
+	await ready_screen.fade_out()
+	ready_screen.call_deferred("hide")
+	resume_timer()
+
+
+func set_child_buttons_disabled(control : Control, blocking : bool = true):
+	var new_focus_mode : FocusMode = FocusMode.FOCUS_NONE if blocking else FocusMode.FOCUS_ALL
+	for button : Button in control.get_children().filter(func(c : Control): return c is Button):
+		button.set_block_signals(blocking)
+		button.focus_mode = new_focus_mode
+
+func _on_ready_screen_visibility_changed() -> void:
+	set_child_buttons_disabled(buttons, ready_screen.is_visible())
+	if not ready_screen.is_visible():
+		$HSplitContainer/TileMapArea.grab_focus()
+
+
+func _on_focus_entered() -> void:
+	recenter_button.grab_focus()

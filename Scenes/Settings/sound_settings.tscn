@@ -1,12 +1,13 @@
-[gd_scene load_steps=9 format=3 uid="uid://b8qbt2c12hto4"]
+[gd_scene load_steps=10 format=3 uid="uid://b8qbt2c12hto4"]
 
 [ext_resource type="Script" path="res://Scenes/Settings/sound_settings.gd" id="1_8j3a7"]
 [ext_resource type="PackedScene" uid="uid://bme8v4sro26wh" path="res://Scenes/Settings/SettingsCategory.tscn" id="1_le153"]
-[ext_resource type="Texture2D" uid="uid://rok38yagbcig" path="res://art/cell.png" id="3_ierrw"]
-[ext_resource type="Texture2D" uid="uid://b2tcwofmse2s" path="res://art/revealed_cell.png" id="4_d6pq5"]
-[ext_resource type="Texture2D" uid="uid://3fuv5ettp0ix" path="res://art/focused_cell.png" id="5_ohxre"]
-[ext_resource type="Texture2D" uid="uid://w1eybn2r417c" path="res://art/exploded_cell.png" id="6_a1sw6"]
+[ext_resource type="Texture2D" uid="uid://dljg2ulaa7n50" path="res://art/Atlas/cell_normal.tres" id="3_7s6hv"]
+[ext_resource type="Texture2D" uid="uid://dxt41kr3x0plg" path="res://art/Atlas/cell_pressed.tres" id="4_5jbfl"]
+[ext_resource type="Texture2D" uid="uid://16l1xq4fet5v" path="res://art/Atlas/cell_hovered.tres" id="5_robxc"]
+[ext_resource type="Texture2D" uid="uid://kyc1g45dgoht" path="res://art/Atlas/cell_disabled.tres" id="6_2fiel"]
 [ext_resource type="Texture2D" uid="uid://bv1eqerwwrsap" path="res://art/mine.png" id="6_c28au"]
+[ext_resource type="Texture2D" uid="uid://bvolaofquan1g" path="res://art/Atlas/cell_exploded.tres" id="7_snb5v"]
 [ext_resource type="Texture2D" uid="uid://cjh375rd5agli" path="res://art/flag.png" id="8_qgkva"]
 
 [node name="SoundSettings" instance=ExtResource("1_le153")]
@@ -15,27 +16,18 @@ script = ExtResource("1_8j3a7")
 [node name="CategoryLabel" parent="." index="0"]
 text = "Sound"
 
-[node name="UISoundOption" type="CheckButton" parent="SettingsContainer" index="0"]
-layout_mode = 2
-text = "UI Sounds"
-
-[node name="SFXSoundOption" type="CheckButton" parent="SettingsContainer" index="1"]
-layout_mode = 2
-button_pressed = true
-text = "Play Sound FX"
-
-[node name="SFXSettings" type="HBoxContainer" parent="SettingsContainer" index="2"]
-layout_mode = 2
-
-[node name="SFXVolume" type="VBoxContainer" parent="SettingsContainer/SFXSettings" index="0"]
+[node name="MasterVolume" type="VBoxContainer" parent="SettingsContainer" index="0"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Label" type="Label" parent="SettingsContainer/SFXSettings/SFXVolume" index="0"]
+[node name="Label" type="Label" parent="SettingsContainer/MasterVolume" index="0"]
 layout_mode = 2
-text = "SFX Volume:"
+text = "Master Volume:"
 
-[node name="Slider" type="HSlider" parent="SettingsContainer/SFXSettings/SFXVolume" index="1"]
+[node name="Setting" type="HBoxContainer" parent="SettingsContainer/MasterVolume" index="1"]
+layout_mode = 2
+
+[node name="Slider" type="HSlider" parent="SettingsContainer/MasterVolume/Setting" index="0"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -43,32 +35,72 @@ max_value = 1.0
 step = 0.05
 value = 1.0
 
-[node name="TestButtons" type="HBoxContainer" parent="SettingsContainer/SFXSettings" index="1"]
+[node name="EnableButton" type="CheckButton" parent="SettingsContainer/MasterVolume/Setting" index="1"]
+layout_mode = 2
+button_pressed = true
+
+[node name="SubBusses" type="VBoxContainer" parent="SettingsContainer" index="1"]
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="SettingsContainer/SubBusses" index="0"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="UISoundOption" type="CheckButton" parent="SettingsContainer/SubBusses" index="1"]
+layout_mode = 2
+button_pressed = true
+text = "UI Sounds"
+
+[node name="SFXSoundOption" type="CheckButton" parent="SettingsContainer/SubBusses" index="2"]
+layout_mode = 2
+button_pressed = true
+text = "Play Sound FX"
+
+[node name="SFXSettings" type="HBoxContainer" parent="SettingsContainer/SubBusses" index="3"]
+layout_mode = 2
+
+[node name="SFXVolume" type="VBoxContainer" parent="SettingsContainer/SubBusses/SFXSettings" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="SettingsContainer/SubBusses/SFXSettings/SFXVolume" index="0"]
+layout_mode = 2
+text = "SFX Volume:"
+
+[node name="Slider" type="HSlider" parent="SettingsContainer/SubBusses/SFXSettings/SFXVolume" index="1"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="TestButtons" type="HBoxContainer" parent="SettingsContainer/SubBusses/SFXSettings" index="1"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.6
 
-[node name="TileRevealed" type="TextureButton" parent="SettingsContainer/SFXSettings/TestButtons" index="0"]
+[node name="TileRevealed" type="TextureButton" parent="SettingsContainer/SubBusses/SFXSettings/TestButtons" index="0"]
 layout_mode = 2
 size_flags_horizontal = 3
-texture_normal = ExtResource("3_ierrw")
-texture_pressed = ExtResource("4_d6pq5")
-texture_hover = ExtResource("5_ohxre")
-texture_disabled = ExtResource("4_d6pq5")
+texture_normal = ExtResource("3_7s6hv")
+texture_pressed = ExtResource("4_5jbfl")
+texture_hover = ExtResource("5_robxc")
+texture_disabled = ExtResource("6_2fiel")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="MineExploded" type="TextureButton" parent="SettingsContainer/SFXSettings/TestButtons" index="1"]
+[node name="MineExploded" type="TextureButton" parent="SettingsContainer/SubBusses/SFXSettings/TestButtons" index="1"]
 layout_mode = 2
 size_flags_horizontal = 3
-texture_normal = ExtResource("3_ierrw")
-texture_pressed = ExtResource("6_a1sw6")
-texture_hover = ExtResource("5_ohxre")
-texture_disabled = ExtResource("4_d6pq5")
+texture_normal = ExtResource("3_7s6hv")
+texture_pressed = ExtResource("7_snb5v")
+texture_hover = ExtResource("5_robxc")
+texture_disabled = ExtResource("6_2fiel")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="MineTexture" type="TextureRect" parent="SettingsContainer/SFXSettings/TestButtons/MineExploded" index="0"]
+[node name="MineTexture" type="TextureRect" parent="SettingsContainer/SubBusses/SFXSettings/TestButtons/MineExploded" index="0"]
 layout_mode = 0
 anchor_left = 0.1423
 anchor_top = 0.148103
@@ -79,17 +111,17 @@ expand_mode = 1
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
-[node name="FlagToggled" type="TextureButton" parent="SettingsContainer/SFXSettings/TestButtons" index="2"]
+[node name="FlagToggled" type="TextureButton" parent="SettingsContainer/SubBusses/SFXSettings/TestButtons" index="2"]
 layout_mode = 2
 size_flags_horizontal = 3
-texture_normal = ExtResource("3_ierrw")
-texture_pressed = ExtResource("4_d6pq5")
-texture_hover = ExtResource("5_ohxre")
-texture_disabled = ExtResource("4_d6pq5")
+texture_normal = ExtResource("3_7s6hv")
+texture_pressed = ExtResource("4_5jbfl")
+texture_hover = ExtResource("5_robxc")
+texture_disabled = ExtResource("6_2fiel")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="MineTexture" type="TextureRect" parent="SettingsContainer/SFXSettings/TestButtons/FlagToggled" index="0"]
+[node name="MineTexture" type="TextureRect" parent="SettingsContainer/SubBusses/SFXSettings/TestButtons/FlagToggled" index="0"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.1423
@@ -101,8 +133,15 @@ expand_mode = 1
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
-[connection signal="toggled" from="SettingsContainer/UISoundOption" to="." method="_on_ui_sound_option_toggled"]
-[connection signal="toggled" from="SettingsContainer/SFXSoundOption" to="." method="_on_sfx_sound_option_toggled"]
-[connection signal="pressed" from="SettingsContainer/SFXSettings/TestButtons/TileRevealed" to="." method="_on_tile_revealed_pressed"]
-[connection signal="pressed" from="SettingsContainer/SFXSettings/TestButtons/MineExploded" to="." method="_on_mine_exploded_pressed"]
-[connection signal="pressed" from="SettingsContainer/SFXSettings/TestButtons/FlagToggled" to="." method="_on_flag_toggled_pressed"]
+[connection signal="drag_ended" from="SettingsContainer/MasterVolume/Setting/Slider" to="." method="_on_master_slider_drag_ended"]
+[connection signal="drag_started" from="SettingsContainer/MasterVolume/Setting/Slider" to="." method="_on_master_slider_drag_started"]
+[connection signal="value_changed" from="SettingsContainer/MasterVolume/Setting/Slider" to="." method="_on_master_slider_value_changed"]
+[connection signal="toggled" from="SettingsContainer/MasterVolume/Setting/EnableButton" to="." method="_on_master_enable_button_toggled"]
+[connection signal="toggled" from="SettingsContainer/SubBusses/UISoundOption" to="." method="_on_ui_sound_option_toggled"]
+[connection signal="toggled" from="SettingsContainer/SubBusses/SFXSoundOption" to="." method="_on_sfx_sound_option_toggled"]
+[connection signal="drag_ended" from="SettingsContainer/SubBusses/SFXSettings/SFXVolume/Slider" to="." method="_on_fx_slider_drag_ended"]
+[connection signal="drag_started" from="SettingsContainer/SubBusses/SFXSettings/SFXVolume/Slider" to="." method="_on_fx_slider_drag_started"]
+[connection signal="value_changed" from="SettingsContainer/SubBusses/SFXSettings/SFXVolume/Slider" to="." method="_on_fx_slider_value_changed"]
+[connection signal="pressed" from="SettingsContainer/SubBusses/SFXSettings/TestButtons/TileRevealed" to="." method="_on_tile_revealed_pressed"]
+[connection signal="pressed" from="SettingsContainer/SubBusses/SFXSettings/TestButtons/MineExploded" to="." method="_on_mine_exploded_pressed"]
+[connection signal="pressed" from="SettingsContainer/SubBusses/SFXSettings/TestButtons/FlagToggled" to="." method="_on_flag_toggled_pressed"]

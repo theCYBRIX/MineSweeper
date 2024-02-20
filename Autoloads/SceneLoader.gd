@@ -2,7 +2,6 @@ extends Node
 
 const SCENES = {
 	"game_area" = "res://Scenes/GameArea/game_area.tscn",
-	"game_grid" = "res://Scenes/GameArea/game_grid.tscn",
 	"start_screen" = "res://Scenes/start_screen.tscn"
 }
 
@@ -11,6 +10,9 @@ signal scene_loaded(Resource)
 
 var loading_screen : PackedScene = preload("res://Scenes/loading_screen.tscn")
 var loading_screen_instance : LoadingScreen
+
+func _ready() -> void:
+	get_tree().node_added.connect(func(_node): move_loading_screen_to_front())
 
 func load_scene(scene : String):
 	
@@ -70,9 +72,11 @@ func wait_hide_loading_screen():
 		await loading_screen_instance.tree_exited
 
 func show_loading_screen():
-	loading_screen_instance = loading_screen.instantiate()
-	loading_screen_instance.tree_exited.connect(on_loading_screen_removed, CONNECT_ONE_SHOT)
-	get_tree().get_root().call_deferred("add_child", loading_screen_instance)
+	if loading_screen_instance != null:
+		loading_screen_instance.call_deferred("emit_signal", "safe_to_load")
+	else:
+		create_new_loading_screen()
+		get_tree().get_root().call_deferred("add_child", loading_screen_instance)
 	return loading_screen_instance
 
 func hide_loading_screen():
@@ -86,4 +90,9 @@ func on_loading_screen_removed():
 	loading_screen_instance = null
 
 func move_loading_screen_to_front():
-	if loading_screen_instance: get_tree().root.move_child(loading_screen_instance, -1)
+	if loading_screen_instance and not loading_screen_instance.is_queued_for_deletion():
+		get_tree().root.move_child(loading_screen_instance, -1)
+
+func create_new_loading_screen():
+	loading_screen_instance = loading_screen.instantiate()
+	loading_screen_instance.tree_exited.connect(on_loading_screen_removed, CONNECT_ONE_SHOT)

@@ -10,14 +10,20 @@ config_version=5
 
 [application]
 
-config/name="MineSweeper"
+config/name="MineSweeper: Sandbox"
+config/description="Customize your minesweeper experience."
+config/version="1.1"
 run/main_scene="res://Scenes/start_screen.tscn"
+config/auto_accept_quit=false
+config/quit_on_go_back=false
 config/features=PackedStringArray("4.2", "GL Compatibility")
-config/icon="res://icon.svg"
+config/icon="res://art/background_grid.png"
+config/windows_native_icon="res://art/mine_logo.ico"
 
 [autoload]
 
-Global="*res://Autoloads/Global.tscn"
+GlobalSettings="*res://Autoloads/GlobalSettings.gd"
+SoundManager="*res://Autoloads/SoundManager.tscn"
 SceneLoader="*res://Autoloads/SceneLoader.gd"
 
 [display]
@@ -28,6 +34,7 @@ window/size/window_width_override=1152
 window/size/window_height_override=648
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
 
 [dotnet]
 
@@ -35,8 +42,10 @@ project/assembly_name="MineSweeper"
 
 [gui]
 
+theme/default_theme_scale=2.0
 theme/default_font_multichannel_signed_distance_field=true
 theme/default_font_generate_mipmaps=true
+theme/minimum_display_time=1000
 
 [input]
 
@@ -79,4 +88,5 @@ common/canvas_textures/default_texture_filter=0
 [rendering]
 
 textures/canvas_textures/default_texture_filter=2
+renderer/rendering_method="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
