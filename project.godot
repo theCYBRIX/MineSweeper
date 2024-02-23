@@ -12,7 +12,7 @@ config_version=5
 
 config/name="MineSweeper: Sandbox"
 config/description="Customize your minesweeper experience."
-config/version="1.1"
+config/version="1.2"
 run/main_scene="res://Scenes/start_screen.tscn"
 config/auto_accept_quit=false
 config/quit_on_go_back=false

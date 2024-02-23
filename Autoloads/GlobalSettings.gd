@@ -27,12 +27,15 @@ const DESKTOP_PLATFORMS : Array[String] = ["Windows", "macOS", "Linux", "FreeBSD
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		if game_state != null:
-			ResourceSaver.save(game_state, save_game_path)
-			
-		get_tree().call_deferred("quit")
+	match(what):
+		NOTIFICATION_WM_CLOSE_REQUEST:
+			quick_save()
+			get_tree().call_deferred("quit")
+		NOTIFICATION_APPLICATION_PAUSED: #Application minimized on Android
+			quick_save()
 
+func quick_save():
+	if game_state != null: ResourceSaver.save(game_state, save_game_path)
 
 func _ready():
 	set_settings(load_settings())

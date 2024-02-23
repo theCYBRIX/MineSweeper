@@ -78,13 +78,17 @@ func _shortcut_input(event):
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		if tile_map.game_over: return
-		if initializing:
-			SceneLoader.hide_loading_screen()
-			return_to_main_menu()
-		elif not paused:
-			pause()
+	match(what):
+		NOTIFICATION_WM_CLOSE_REQUEST: #Back button pressed on Android or Escape pressed on desktop
+			if tile_map.game_over: return
+			if initializing:
+				SceneLoader.hide_loading_screen()
+				return_to_main_menu()
+			elif not paused:
+				pause()
+		NOTIFICATION_APPLICATION_PAUSED: #application minimized on Android
+			if game_ongoing and not paused:
+				pause()
 	
 
 
@@ -252,10 +256,6 @@ func override_timer_color(color : Color):
 	timer_label.add_theme_color_override("font_color", color)
 
 
-func _on_tile_map_tile_revealed():
-	SoundManager.tile_revealed()
-
-
 func _on_ready_screen_start() -> void:
 	await ready_screen.fade_out()
 	ready_screen.call_deferred("hide")
@@ -276,3 +276,7 @@ func _on_ready_screen_visibility_changed() -> void:
 
 func _on_focus_entered() -> void:
 	recenter_button.grab_focus()
+
+
+func _on_tile_map_safe_tile_count_changed(_num_safe: int) -> void:
+	if not tile_map.revealing: SoundManager.tile_revealed()

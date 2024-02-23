@@ -238,6 +238,7 @@ layout_mode = 1
 [connection signal="flag_count_changed" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_flag_count_changed"]
 [connection signal="game_started" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_game_started"]
 [connection signal="lose" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_lose"]
+[connection signal="safe_tile_count_changed" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_safe_tile_count_changed"]
 [connection signal="win" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_win"]
 [connection signal="retry" from="LoseScreen" to="." method="_on_lose_screen_retry"]
 [connection signal="return_to_main_menu" from="LoseScreen" to="." method="return_to_main_menu"]
