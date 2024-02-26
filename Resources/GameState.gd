@@ -19,10 +19,10 @@ enum TileState{
 	get = get_num_flags
 
 @export var grid_area : Rect2i
-@export var num_mines : int
+var num_mines : int
 
 @export var state_map : Array[Array]
-@export var mine_map : Array[Array]
+var mine_map : Array[Array]
 @export var alternative_mine : Vector2i
 @export var mine_coordinate_list : Array[Vector2i]
 
@@ -33,8 +33,10 @@ var state_map_mutex : Mutex = Mutex.new()
 
 @export var time_elapsed : float = 0
 
-func _init(initialized : bool = false) -> void:
-	if initialized: reset()
+var initialized = false
+
+func _init(initialize : bool = false) -> void:
+	if initialize: reset()
 
 func reset():
 	grid_area = GlobalSettings.settings.get_grid_rect()
@@ -79,6 +81,7 @@ func reset():
 				mine_index += 1
 				if mine_index < mine_locations.size():
 					next_mine = mine_locations[mine_index]
+	initialized = true
 
 func is_tile_obscured(index : Vector2i) -> bool:
 	return tile_has_state(index, TileState.OBSCURED)
@@ -184,3 +187,24 @@ func lock():
 	
 func unlock():
 	state_map_mutex.unlock()
+
+func prepare():
+	if initialized:
+		return
+	if (not grid_area) or (not mine_coordinate_list):
+		reset()
+		return
+		
+	var grid_size = grid_area.size
+	mine_map = []
+	mine_map.resize(grid_size.x)
+	for column : int in range(grid_size.x):
+		mine_map[column] = []
+		mine_map[column].resize(grid_size.y)
+		for row : int in range(grid_size.y):
+			mine_map[column][row] = false
+			
+	num_mines = mine_coordinate_list.size()
+	for mine in mine_coordinate_list:
+		mine_map[mine.x][mine.y] = true
+	initialized = true

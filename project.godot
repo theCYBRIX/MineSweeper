@@ -12,7 +12,7 @@ config_version=5
 
 config/name="MineSweeper: Sandbox"
 config/description="Customize your minesweeper experience."
-config/version="1.2"
+config/version="1.3"
 run/main_scene="res://Scenes/start_screen.tscn"
 config/auto_accept_quit=false
 config/quit_on_go_back=false
@@ -22,6 +22,7 @@ config/windows_native_icon="res://art/mine_logo.ico"
 
 [autoload]
 
+LoadingScreen="*res://Scenes/loading_screen.tscn"
 GlobalSettings="*res://Autoloads/GlobalSettings.gd"
 SoundManager="*res://Autoloads/SoundManager.tscn"
 SceneLoader="*res://Autoloads/SceneLoader.gd"

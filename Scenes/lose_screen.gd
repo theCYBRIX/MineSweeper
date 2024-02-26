@@ -27,7 +27,7 @@ func _on_retry():
 	load_game_area()
 
 func load_game_area():
-	await SceneLoader.show_loading_screen().safe_to_load
+	SceneLoader.show_loading_screen()
 	SceneLoader.scene_loaded.connect(on_game_area_loaded, ConnectFlags.CONNECT_ONE_SHOT)
 	SceneLoader.load_scene("game_area")
 

@@ -44,9 +44,8 @@ func _on_quit_button_pressed():
 
 func load_game_area():
 	start_game.emit()
-	await SceneLoader.show_loading_screen().safe_to_load
+	await SceneLoader.show_loading_screen()
 	SceneLoader.scene_loaded.connect(on_game_area_loaded, ConnectFlags.CONNECT_ONE_SHOT)
-	get_tree().node_added.connect(func(_node): SceneLoader.move_loading_screen_to_front(), CONNECT_ONE_SHOT)
 	SceneLoader.load_scene("game_area")
 
 func on_game_area_loaded(game_area : PackedScene):

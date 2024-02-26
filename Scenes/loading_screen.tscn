@@ -16,6 +16,21 @@ shader_parameter/blend_color = Color(0.243137, 0.388235, 0.478431, 0)
 shader_parameter/blend_fraction = 0.4
 shader_parameter/darken = 0.18
 
+[sub_resource type="Animation" id="Animation_5gjsx"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
 [sub_resource type="Animation" id="Animation_7hb4h"]
 resource_name = "FADE_IN"
 length = 0.5
@@ -38,9 +53,12 @@ tracks/1/path = NodePath("..")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0.5),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
 "values": [{
+"args": [],
+"method": &"show"
+}, {
 "args": [&"safe_to_load"],
 "method": &"emit_signal"
 }]
@@ -72,30 +90,15 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1),
 "values": [{
 "args": [],
-"method": &"queue_free"
+"method": &"hide"
 }]
-}
-
-[sub_resource type="Animation" id="Animation_5gjsx"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 0)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gjn78"]
 _data = {
-"FADE_IN": SubResource("Animation_7hb4h"),
-"FADE_OUT": SubResource("Animation_r2g1p"),
-"RESET": SubResource("Animation_5gjsx")
+"RESET": SubResource("Animation_5gjsx"),
+"fade_in": SubResource("Animation_7hb4h"),
+"fade_out": SubResource("Animation_r2g1p")
 }
 
 [sub_resource type="Animation" id="Animation_pnhwx"]
@@ -112,6 +115,20 @@ tracks/0/keys = {
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0.501961)]
 }
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"show"
+}]
+}
 
 [sub_resource type="Animation" id="Animation_h5f5n"]
 resource_name = "fade_out"
@@ -127,6 +144,20 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.5),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"hide"
+}]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_hirga"]
@@ -193,22 +224,6 @@ animations = [{
 "speed": 4.0
 }]
 
-[sub_resource type="Animation" id="Animation_mb1q5"]
-resource_name = "FADE_IN"
-length = 0.5
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("../../..:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
-}
-
 [sub_resource type="Animation" id="Animation_02g8w"]
 length = 0.001
 loop_mode = 1
@@ -225,26 +240,36 @@ tracks/0/keys = {
 "values": [Color(1, 1, 1, 0)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_ghjlj"]
-_data = {
-"FADE_IN": SubResource("Animation_mb1q5"),
-"RESET": SubResource("Animation_02g8w")
+[sub_resource type="Animation" id="Animation_mb1q5"]
+resource_name = "FADE_IN"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../../..:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
 }
 
-[node name="LoadingScreen" type="Control"]
-z_index = 1
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ghjlj"]
+_data = {
+"RESET": SubResource("Animation_02g8w"),
+"fade_in": SubResource("Animation_mb1q5")
+}
+
+[node name="LoadingScreen" type="CanvasLayer"]
+layer = 2
+visible = false
 script = ExtResource("1_potdk")
 
 [node name="Background" type="TextureRect" parent="."]
 modulate = Color(1, 1, 1, 0)
 material = SubResource("ShaderMaterial_j0bwe")
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -316,7 +341,6 @@ position = Vector2(-157, -175)
 scale = Vector2(0.75, 0.75)
 sprite_frames = SubResource("SpriteFrames_c2epe")
 animation = &"Explosion"
-autoplay = "Digging"
 metadata/_edit_use_anchors_ = true
 
 [node name="ElementsFader" type="AnimationPlayer" parent="Background/ForegroundElements"]
@@ -330,5 +354,6 @@ libraries = {
 }
 
 [connection signal="safe_to_load" from="." to="." method="_on_safe_to_load"]
+[connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="timeout" from="Background/SymbolTimer" to="." method="_on_symbol_timer_timeout"]
 [connection signal="timeout" from="Background/ForegroundElements/CancelLabel/FadeInTimer" to="." method="_on_fade_in_timer_timeout"]

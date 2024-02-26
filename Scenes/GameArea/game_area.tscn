@@ -247,6 +247,6 @@ layout_mode = 1
 [connection signal="quit" from="PauseScreen" to="." method="_on_pause_screen_quit"]
 [connection signal="resume" from="PauseScreen" to="." method="_on_pause_screen_resume"]
 [connection signal="quit" from="ReadyScreen" to="." method="return_to_main_menu"]
-[connection signal="start" from="ReadyScreen" to="." method="_on_ready_screen_start"]
 [connection signal="start" from="ReadyScreen" to="." method="_on_tile_map_game_started"]
+[connection signal="start" from="ReadyScreen" to="." method="_on_ready_screen_start"]
 [connection signal="visibility_changed" from="ReadyScreen" to="." method="_on_ready_screen_visibility_changed"]

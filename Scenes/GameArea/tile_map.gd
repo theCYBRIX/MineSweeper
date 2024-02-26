@@ -111,7 +111,7 @@ func _ready():
 
 func _process(_delta):
 	if preparing:
-		SceneLoader.set_loading_screen_progress( float((preparing_pointer.x * game_state.grid_area.size.y) + preparing_pointer.y) / (game_state.grid_area.get_area()))
+		SceneLoader.set_loading_progress( float((preparing_pointer.x * game_state.grid_area.size.y) + preparing_pointer.y) / (game_state.grid_area.get_area()))
 
 
 func _physics_process(_delta):
@@ -201,6 +201,7 @@ func prepare_grid(initial_state : GameState):
 	call_deferred("set_process_unhandled_input", true)
 
 func set_game_state(state : GameState):
+	state.prepare()
 	game_state = state
 	game_state.flag_count_changed.connect(on_flag_count_changed.bind())
 	game_state.safe_tile_count_changed.connect(on_safe_tile_count_changed.bind())

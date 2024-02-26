@@ -51,7 +51,7 @@ func prepare():
 	call_deferred("refresh_ui")
 	
 	initializing = false
-	SceneLoader.hide_loading_screen()
+	SceneLoader.call_deferred("hide_loading_screen")
 
 func refresh_ui():
 	recenter_tile_map()
@@ -68,13 +68,11 @@ func _shortcut_input(event):
 	if (not paused) and not tile_map.game_over:
 		if event.is_action_pressed("ui_cancel"):
 			if initializing:
-				SceneLoader.hide_loading_screen()
 				return_to_main_menu()
 			else:
 				pause()
 		else:
 			return
-		get_viewport().set_input_as_handled()
 
 
 func _notification(what: int) -> void:
@@ -82,7 +80,6 @@ func _notification(what: int) -> void:
 		NOTIFICATION_WM_CLOSE_REQUEST: #Back button pressed on Android or Escape pressed on desktop
 			if tile_map.game_over: return
 			if initializing:
-				SceneLoader.hide_loading_screen()
 				return_to_main_menu()
 			elif not paused:
 				pause()
@@ -141,7 +138,7 @@ func _on_tile_map_win():
 	win_screen.prepare_animation()
 	
 	win_screen.show()
-	GlobalSettings.delete_saved_game_state()
+	GlobalSettings.delete_save()
 
 
 func _on_tile_map_lose():
@@ -150,11 +147,11 @@ func _on_tile_map_lose():
 	timer.stop()
 	buttons.hide()
 	$LoseScreen.show()
-	GlobalSettings.delete_saved_game_state()
+	GlobalSettings.delete_save()
 
 
 func switch_scene(next : String):
-	await SceneLoader.show_loading_screen().safe_to_load
+	if not LoadingScreen.is_visible(): await SceneLoader.show_loading_screen()
 	SceneLoader.scene_loaded.connect(on_scene_loaded, ConnectFlags.CONNECT_ONE_SHOT)
 	SceneLoader.load_scene(next)
 
@@ -171,7 +168,7 @@ func _on_lose_screen_retry():
 	load_game_area()
 
 func load_game_area():
-	await SceneLoader.show_loading_screen().safe_to_load
+	SceneLoader.show_loading_screen()
 	SceneLoader.scene_loaded.connect(on_game_area_loaded, ConnectFlags.CONNECT_ONE_SHOT)
 	SceneLoader.load_scene("game_area")
 

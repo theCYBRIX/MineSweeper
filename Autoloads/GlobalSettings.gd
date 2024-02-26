@@ -35,7 +35,14 @@ func _notification(what: int) -> void:
 			quick_save()
 
 func quick_save():
-	if game_state != null: ResourceSaver.save(game_state, save_game_path)
+	if game_state != null:
+		ResourceSaver.save(game_state, save_game_path)
+		saved_game_state = game_state
+
+func delete_save():
+	if FileAccess.file_exists(save_game_path):
+		DirAccess.remove_absolute(save_game_path)
+	saved_game_state = null
 
 func _ready():
 	set_settings(load_settings())
@@ -84,11 +91,6 @@ func save_settings():
 func save_game_state(state : GameState):
 	ResourceSaver.save(state, save_game_path, ResourceSaver.FLAG_NONE)
 	saved_game_state = state
-
-func delete_saved_game_state():
-	saved_game_state = null
-	if FileAccess.file_exists(save_game_path):
-		DirAccess.remove_absolute(save_game_path)
 
 func load_settings() -> Resource:
 	if FileAccess.file_exists(settings_path):
