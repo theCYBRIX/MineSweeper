@@ -1,5 +1,7 @@
 extends Control
 
+signal preparation_finished
+
 @onready var mine_symbol: TextureRect = $HSplitContainer/Panel/MineSymbol
 @onready var mine_label = $HSplitContainer/Panel/MineSymbol/MineLabel
 
@@ -40,9 +42,15 @@ func _ready():
 	hide()
 	tile_map.hide()
 	
-	WorkerThreadPool.add_task(prepare.bind())
+	await prepare_asynch()
+	if LoadingScreen.is_in_foreground():
+		SceneLoader.hide_loading_screen()
 
-func prepare():
+func prepare_asynch() -> Signal:
+	WorkerThreadPool.add_task(prepare.bind())
+	return preparation_finished
+
+func prepare() -> void:
 	var game_state : GameState = GlobalSettings.get_initial_game_state()
 	
 	tile_map.prepare_grid(game_state)
@@ -51,7 +59,7 @@ func prepare():
 	call_deferred("refresh_ui")
 	
 	initializing = false
-	SceneLoader.call_deferred("hide_loading_screen")
+	call_deferred("emit_signal", "preparation_finished")
 
 func refresh_ui():
 	recenter_tile_map()
@@ -59,7 +67,7 @@ func refresh_ui():
 	update_timer_text()
 	flag_label.set_text(str(tile_map.get_flag_count()))
 	mine_label.set_text(str(GlobalSettings.get_mines()))
-	if GlobalSettings.use_saved_state:
+	if tile_map.game_state.first_tile_revealed:
 		ready_screen.show()
 	else:
 		$HSplitContainer/TileMapArea.grab_focus()
@@ -150,16 +158,6 @@ func _on_tile_map_lose():
 	GlobalSettings.delete_save()
 
 
-func switch_scene(next : String):
-	if not LoadingScreen.is_visible(): await SceneLoader.show_loading_screen()
-	SceneLoader.scene_loaded.connect(on_scene_loaded, ConnectFlags.CONNECT_ONE_SHOT)
-	SceneLoader.load_scene(next)
-
-func on_scene_loaded(new_scene : PackedScene):
-	get_tree().change_scene_to_packed(new_scene)
-	SceneLoader.hide_loading_screen()
-
-
 func _on_lose_screen_screen_obscured():
 	tile_map.show_all_mines()
 
@@ -168,17 +166,12 @@ func _on_lose_screen_retry():
 	load_game_area()
 
 func load_game_area():
-	SceneLoader.show_loading_screen()
-	SceneLoader.scene_loaded.connect(on_game_area_loaded, ConnectFlags.CONNECT_ONE_SHOT)
-	SceneLoader.load_scene("game_area")
-
-func on_game_area_loaded(game_area : PackedScene):
-	get_tree().change_scene_to_packed(game_area)
+	SceneLoader.switch_to_scene("game_area", false)
 
 
 func return_to_main_menu():
 	GlobalSettings.game_state = null
-	switch_scene("start_screen")
+	SceneLoader.switch_to_scene("start_screen")
 
 
 func _on_pause_button_pressed():

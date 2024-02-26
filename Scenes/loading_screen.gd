@@ -17,12 +17,15 @@ signal safe_to_load
 var symbol_present : bool = false
 var cancel_label_present : bool = false
 
+var in_foreground : bool = false :
+	set = set_in_foreground,
+	get = is_in_foreground
+
 func _ready() -> void:
 	cancel_label.set_text("Press %s to cancel." % ("back" if GlobalSettings.os_is_mobile() else "escape"))
 
 func fade_in() -> Signal:
-	if bg_animator.is_playing():
-		await bg_animator.animation_finished
+	animation_wait_finish()
 	bg_animator.play("fade_in")
 	return safe_to_load
 
@@ -31,8 +34,7 @@ func fade_out() -> Signal:
 	progress_bar.set_value(progress_bar.get_max())
 	if symbol_present:
 		await fade_out_animated_elements()
-	if bg_animator.is_playing():
-		await bg_animator.animation_finished
+	animation_wait_finish()
 	bg_animator.play("fade_out")
 	return bg_animator.animation_finished
 
@@ -81,3 +83,13 @@ func stop_timers():
 	symbol_timer.stop()
 	cancel_label_timer.stop()
 
+func animation_wait_finish():
+	if bg_animator.is_playing():
+		await bg_animator.animation_finished
+
+func set_in_foreground(value : bool):
+	in_foreground = value
+	
+func is_in_foreground() -> bool:
+	animation_wait_finish()
+	return in_foreground

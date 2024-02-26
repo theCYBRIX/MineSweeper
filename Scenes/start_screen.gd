@@ -44,20 +44,7 @@ func _on_quit_button_pressed():
 
 func load_game_area():
 	start_game.emit()
-	await SceneLoader.show_loading_screen()
-	SceneLoader.scene_loaded.connect(on_game_area_loaded, ConnectFlags.CONNECT_ONE_SHOT)
-	SceneLoader.load_scene("game_area")
-
-func on_game_area_loaded(game_area : PackedScene):
-	get_tree().change_scene_to_packed(game_area)
-	#WorkerThreadPool.add_task(prepare_game_area.bind())
-
-func prepare_game_area(game_area):
-	#var instance = game_area.instantiate()
-	game_area.prepare_grid()
-	#game_area.initialize_tiles()
-	#SceneLoader.call_deferred("swap_scene", self, game_area)
-	
+	SceneLoader.switch_to_scene("game_area", false)
 
 func _on_settings_menu_hidden():
 	set_child_buttons_disabled(main_buttons, false)
@@ -96,7 +83,6 @@ func _on_start_pressed() -> void:
 		animation_player.play("enter_prompt")
 	else:
 		_on_new_game_pressed()
-		
 
 
 func _on_back_pressed() -> void:
@@ -121,4 +107,3 @@ func tween_rect(tween : Tween, control : Control, initial : Rect2, final : Rect2
 	tween.parallel().tween_property(control, "position", final.position, duration)
 	control.set_size(initial.size)
 	tween.parallel().tween_property(control, "size", final.size, duration)
-	

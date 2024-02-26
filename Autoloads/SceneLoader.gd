@@ -8,12 +8,12 @@ const SCENES = {
 signal progress_updated(float)
 signal scene_loaded(Resource)
 
-var requested_scene_path : String
+var requested_scene : PackedScene
 var requested_successfull : bool = false
 
 func load_scene(scene : String) -> Error:
 	requested_successfull = false
-	requested_scene_path = SCENES.get(scene, scene)
+	var requested_scene_path = SCENES.get(scene, scene)
 	
 	var error = ResourceLoader.load_threaded_request(requested_scene_path)
 	
@@ -32,8 +32,8 @@ func load_scene(scene : String) -> Error:
 					printerr("ERROR: Loading Failed!")
 					error = FAILED
 				3: # THREAD_LOAD_LOADED
-					var loaded = ResourceLoader.load_threaded_get(requested_scene_path)
-					scene_loaded.emit(loaded)
+					requested_scene = ResourceLoader.load_threaded_get(requested_scene_path)
+					scene_loaded.emit(requested_scene)
 					requested_successfull = true
 					return OK
 					
@@ -42,11 +42,11 @@ func load_scene(scene : String) -> Error:
 	return error
 
 func get_loaded_scene() -> Resource:
-	return ResourceLoader.get(requested_scene_path) if requested_successfull else null
+	return requested_scene if requested_successfull else null
 
 func swap_scene(current : Node, future : Node):
 	var parent_scene = current.get_parent()
-	var current_index = get_index()
+	var current_index = current.get_index()
 	current.queue_free()
 	parent_scene.call_deferred("add_child", future)
 	parent_scene.call_deferred("move_child", future, current_index)
@@ -66,3 +66,18 @@ func show_loading_screen() -> Signal:
 
 func hide_loading_screen():
 	await LoadingScreen.fade_out()
+
+func switch_to_scene(scene : String, fade_out : bool = true) -> Error:
+	if not LoadingScreen.is_in_foreground():
+		LoadingScreen.fade_in()
+		await LoadingScreen.safe_to_load
+		
+	var error = load_scene(scene)
+	if error == OK:
+		var loaded_scene = get_loaded_scene()
+		get_tree().change_scene_to_packed(loaded_scene)
+		
+	if fade_out:
+		await LoadingScreen.fade_out()
+		
+	return error
