@@ -1,4 +1,8 @@
 # Godot 4+ specific ignores
 .godot/
 # Ignore builds
-Builds/
+Builds/*.zip
+Builds/*.apk
+Builds/*.apk.*
+Builds/*.x86*
+Builds/*.exe
