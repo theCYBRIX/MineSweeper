@@ -1,6 +1,6 @@
 @echo off
 
-echo Compressing 4 files...
+echo Compressing desktop builds...
 echo Progress: 0/4
 
 7z a -tzip -mx=9 "MineSweeper_Windows_x32.zip" .\MineSweeper_x32.exe && del .\MineSweeper_x32.exe

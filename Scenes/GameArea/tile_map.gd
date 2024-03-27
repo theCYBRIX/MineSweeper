@@ -41,7 +41,7 @@ signal flag_count_changed(num_flags : int)
 
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var click_timer: Timer = $ClickTimer
-var is_click : bool = false
+var input_is_click : bool = false
 
 var mouse_pressed : bool = false
 
@@ -244,7 +244,7 @@ func on_mouse_pressed():
 			queue_click()
 
 func on_mouse_released():
-	if is_click and local_to_map(get_local_mouse_position()) == pressed_tile:
+	if input_is_click and local_to_map(get_local_mouse_position()) == pressed_tile:
 		cancel_click()
 		reveal_tile(pressed_tile)
 	else:
@@ -266,13 +266,13 @@ func update_hover_status():
 			set_highlighted_texture(hovered_tile)
 
 func queue_click():
-	is_click = true
+	input_is_click = true
 	click_timer.start()
 
 func cancel_click():
-	if not is_click: return
+	if not input_is_click: return
 	click_timer.stop()
-	is_click = false
+	input_is_click = false
 	set_tile_unpressed(pressed_tile)
 	
 #endregion
@@ -535,7 +535,7 @@ func decrement_safe_tile_count():
 	game_state.set_num_safe_tiles(game_state.get_num_safe_tiles() - 1)
 
 func _on_click_timer_timeout() -> void:
-	is_click = false
+	input_is_click = false
 	set_tile_unpressed(pressed_tile)
 
 func on_win():
