@@ -8,10 +8,9 @@ signal preparation_finished
 @onready var flag_symbol: TextureRect = $HSplitContainer/Panel/FlagSymbol
 @onready var flag_label = $HSplitContainer/Panel/FlagSymbol/FlagLabel
 
-@onready var pause_screen = $PauseScreen
-@onready var win_screen: Control = $WinScreen
 
 @onready var tile_map_viewport = $HSplitContainer/TileMapArea/SubViewport
+@onready var tile_map_area: SubViewportContainer = $HSplitContainer/TileMapArea
 @onready var tile_map = $HSplitContainer/TileMapArea/SubViewport/TileMap
 
 @onready var timer_label : Label = $HSplitContainer/Panel/TimerLabel
@@ -23,7 +22,12 @@ signal preparation_finished
 @onready var pause_button = $HSplitContainer/Panel/Buttons/PauseButton
 @onready var animation_player: AnimationPlayer = $HSplitContainer/TileMapArea/AnimationPlayer
 
-@onready var ready_screen: Control = $ReadyScreen
+@onready var ready_screen: Control = $Overlays/ReadyScreen
+@onready var lose_screen: Control = $Overlays/LoseScreen
+@onready var pause_screen = $Overlays/PauseScreen
+@onready var win_screen: Control = $Overlays/WinScreen
+
+@onready var camera_shake: Node = $HSplitContainer/TileMapArea/SubViewport/Camera/CameraShake
 
 @export_group("Timer Colors", "timer")
 @export_color_no_alpha var timer_active_color : Color = Color(0.812, 0.161, 0.161)
@@ -70,7 +74,7 @@ func refresh_ui():
 	if tile_map.game_state.first_tile_revealed:
 		ready_screen.show()
 	else:
-		$HSplitContainer/TileMapArea.grab_focus()
+		tile_map_area.grab_focus()
 
 func _shortcut_input(event):
 	if (not paused) and not tile_map.game_over:
@@ -150,12 +154,14 @@ func _on_tile_map_win():
 
 
 func _on_tile_map_lose():
-	SoundManager.mine_exploded()
 	game_ongoing = false
 	timer.stop()
 	buttons.hide()
-	$LoseScreen.show()
+	SoundManager.mine_exploded()
+	camera_shake.shake(0.5)
+	lose_screen.show()
 	GlobalSettings.delete_save()
+	
 
 
 func _on_lose_screen_screen_obscured():
@@ -261,7 +267,7 @@ func set_child_buttons_disabled(control : Control, blocking : bool = true):
 func _on_ready_screen_visibility_changed() -> void:
 	set_child_buttons_disabled(buttons, ready_screen.is_visible())
 	if not ready_screen.is_visible():
-		$HSplitContainer/TileMapArea.grab_focus()
+		tile_map_area.grab_focus()
 
 
 func _on_focus_entered() -> void:

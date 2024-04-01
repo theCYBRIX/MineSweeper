@@ -6,3 +6,4 @@ Builds/*.apk
 Builds/*.apk.*
 Builds/*.x86*
 Builds/*.exe
+Builds/WebBuild

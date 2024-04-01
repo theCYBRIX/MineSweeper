@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://bb5i7co4jg4hx"]
+[gd_scene load_steps=18 format=3 uid="uid://bb5i7co4jg4hx"]
 
 [ext_resource type="Script" path="res://Scenes/GameArea/game_area.gd" id="1_d7hsf"]
 [ext_resource type="Texture2D" uid="uid://bv1eqerwwrsap" path="res://art/mine.png" id="1_r0hvk"]
@@ -9,6 +9,7 @@
 [ext_resource type="Shader" path="res://Shaders/border_color_fade.gdshader" id="6_clk20"]
 [ext_resource type="Script" path="res://Scenes/GameArea/Camera.gd" id="6_irmw6"]
 [ext_resource type="PackedScene" uid="uid://b8l3lih4atv74" path="res://Scenes/pause_screen.tscn" id="8_tic4j"]
+[ext_resource type="PackedScene" uid="uid://beykam2pe4js6" path="res://Scenes/camera_shake.tscn" id="9_3d465"]
 [ext_resource type="PackedScene" uid="uid://claggslhd5aad" path="res://Scenes/lose_screen.tscn" id="10_n1xfe"]
 [ext_resource type="PackedScene" uid="uid://b040ld4j6hkmi" path="res://Scenes/win_screen.tscn" id="11_54yin"]
 [ext_resource type="PackedScene" uid="uid://lcidexlgme08" path="res://Scenes/ready_screen.tscn" id="12_nxttd"]
@@ -206,28 +207,31 @@ light_mask = 0
 [node name="Camera" type="Camera2D" parent="HSplitContainer/TileMapArea/SubViewport"]
 script = ExtResource("6_irmw6")
 
+[node name="CameraShake" parent="HSplitContainer/TileMapArea/SubViewport/Camera" node_paths=PackedStringArray("camera") instance=ExtResource("9_3d465")]
+camera = NodePath("..")
+intensity = 10.0
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="HSplitContainer/TileMapArea"]
 libraries = {
 "": SubResource("AnimationLibrary_l5oa5")
 }
 
-[node name="LoseScreen" parent="." instance=ExtResource("10_n1xfe")]
-visible = false
-layout_mode = 1
+[node name="Overlays" type="CanvasLayer" parent="."]
+layer = 2
 
-[node name="WinScreen" parent="." instance=ExtResource("11_54yin")]
+[node name="LoseScreen" parent="Overlays" instance=ExtResource("10_n1xfe")]
 visible = false
-layout_mode = 1
 
-[node name="PauseScreen" parent="." instance=ExtResource("8_tic4j")]
+[node name="WinScreen" parent="Overlays" instance=ExtResource("11_54yin")]
+visible = false
+
+[node name="PauseScreen" parent="Overlays" instance=ExtResource("8_tic4j")]
 visible = false
 top_level = true
-layout_mode = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="ReadyScreen" parent="." instance=ExtResource("12_nxttd")]
+[node name="ReadyScreen" parent="Overlays" instance=ExtResource("12_nxttd")]
 visible = false
-layout_mode = 1
 
 [connection signal="focus_entered" from="." to="." method="_on_focus_entered"]
 [connection signal="timeout" from="HSplitContainer/Panel/TimerLabel/Timer" to="." method="_on_timer_timeout"]
@@ -240,13 +244,13 @@ layout_mode = 1
 [connection signal="lose" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_lose"]
 [connection signal="safe_tile_count_changed" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_safe_tile_count_changed"]
 [connection signal="win" from="HSplitContainer/TileMapArea/SubViewport/TileMap" to="." method="_on_tile_map_win"]
-[connection signal="retry" from="LoseScreen" to="." method="_on_lose_screen_retry"]
-[connection signal="return_to_main_menu" from="LoseScreen" to="." method="return_to_main_menu"]
-[connection signal="screen_obscured" from="LoseScreen" to="." method="_on_lose_screen_screen_obscured"]
-[connection signal="return_to_main_menu" from="WinScreen" to="." method="return_to_main_menu"]
-[connection signal="quit" from="PauseScreen" to="." method="_on_pause_screen_quit"]
-[connection signal="resume" from="PauseScreen" to="." method="_on_pause_screen_resume"]
-[connection signal="quit" from="ReadyScreen" to="." method="return_to_main_menu"]
-[connection signal="start" from="ReadyScreen" to="." method="_on_ready_screen_start"]
-[connection signal="start" from="ReadyScreen" to="." method="_on_tile_map_game_started"]
-[connection signal="visibility_changed" from="ReadyScreen" to="." method="_on_ready_screen_visibility_changed"]
+[connection signal="retry" from="Overlays/LoseScreen" to="." method="_on_lose_screen_retry"]
+[connection signal="return_to_main_menu" from="Overlays/LoseScreen" to="." method="return_to_main_menu"]
+[connection signal="screen_obscured" from="Overlays/LoseScreen" to="." method="_on_lose_screen_screen_obscured"]
+[connection signal="return_to_main_menu" from="Overlays/WinScreen" to="." method="return_to_main_menu"]
+[connection signal="quit" from="Overlays/PauseScreen" to="." method="_on_pause_screen_quit"]
+[connection signal="resume" from="Overlays/PauseScreen" to="." method="_on_pause_screen_resume"]
+[connection signal="quit" from="Overlays/ReadyScreen" to="." method="return_to_main_menu"]
+[connection signal="start" from="Overlays/ReadyScreen" to="." method="_on_ready_screen_start"]
+[connection signal="start" from="Overlays/ReadyScreen" to="." method="_on_tile_map_game_started"]
+[connection signal="visibility_changed" from="Overlays/ReadyScreen" to="." method="_on_ready_screen_visibility_changed"]
