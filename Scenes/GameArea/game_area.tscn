@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://bb5i7co4jg4hx"]
+[gd_scene load_steps=20 format=3 uid="uid://bb5i7co4jg4hx"]
 
 [ext_resource type="Script" path="res://Scenes/GameArea/game_area.gd" id="1_d7hsf"]
 [ext_resource type="Texture2D" uid="uid://bv1eqerwwrsap" path="res://art/mine.png" id="1_r0hvk"]
@@ -20,6 +20,43 @@ shader_parameter/borderSize = 0.099
 shader_parameter/borderColor = Color(0.745098, 0.745098, 0.745098, 1)
 shader_parameter/fade = 1.0
 shader_parameter/opacity = 0.0
+
+[sub_resource type="Animation" id="Animation_vr6xt"]
+resource_name = "shake_camera"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:intensity")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 2.92817),
+"update": 0,
+"values": [10.0, 2.0]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"start"
+}, {
+"args": [],
+"method": &"stop"
+}]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_g4xnb"]
+_data = {
+"shake_camera": SubResource("Animation_vr6xt")
+}
 
 [sub_resource type="Animation" id="Animation_0qng4"]
 length = 0.001
@@ -191,6 +228,7 @@ show_behind_parent = true
 clip_children = 2
 material = SubResource("ShaderMaterial_x3bjc")
 layout_mode = 2
+size_flags_horizontal = 3
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="HSplitContainer/TileMapArea"]
@@ -199,7 +237,6 @@ transparent_bg = true
 handle_input_locally = false
 canvas_cull_mask = 4293918721
 size = Vector2i(1520, 1080)
-render_target_update_mode = 4
 
 [node name="TileMap" parent="HSplitContainer/TileMapArea/SubViewport" instance=ExtResource("3_a53ch")]
 light_mask = 0
@@ -209,9 +246,14 @@ script = ExtResource("6_irmw6")
 
 [node name="CameraShake" parent="HSplitContainer/TileMapArea/SubViewport/Camera" node_paths=PackedStringArray("camera") instance=ExtResource("9_3d465")]
 camera = NodePath("..")
-intensity = 10.0
+intensity = 2.0
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="HSplitContainer/TileMapArea"]
+[node name="ShakeAnimation" type="AnimationPlayer" parent="HSplitContainer/TileMapArea/SubViewport/Camera/CameraShake"]
+libraries = {
+"": SubResource("AnimationLibrary_g4xnb")
+}
+
+[node name="FlagAnimation" type="AnimationPlayer" parent="HSplitContainer/TileMapArea"]
 libraries = {
 "": SubResource("AnimationLibrary_l5oa5")
 }

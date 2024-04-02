@@ -20,14 +20,15 @@ signal preparation_finished
 @onready var buttons = $HSplitContainer/Panel/Buttons
 @onready var recenter_button = $HSplitContainer/Panel/Buttons/RecenterButton
 @onready var pause_button = $HSplitContainer/Panel/Buttons/PauseButton
-@onready var animation_player: AnimationPlayer = $HSplitContainer/TileMapArea/AnimationPlayer
+@onready var flag_animation: AnimationPlayer = $HSplitContainer/TileMapArea/FlagAnimation
 
 @onready var ready_screen: Control = $Overlays/ReadyScreen
 @onready var lose_screen: Control = $Overlays/LoseScreen
 @onready var pause_screen = $Overlays/PauseScreen
 @onready var win_screen: Control = $Overlays/WinScreen
 
-@onready var camera_shake: Node = $HSplitContainer/TileMapArea/SubViewport/Camera/CameraShake
+#@onready var camera_shake: Node = $HSplitContainer/TileMapArea/SubViewport/Camera/CameraShake
+@onready var camera_shake: AnimationPlayer = $HSplitContainer/TileMapArea/SubViewport/Camera/CameraShake/ShakeAnimation
 
 @export_group("Timer Colors", "timer")
 @export_color_no_alpha var timer_active_color : Color = Color(0.812, 0.161, 0.161)
@@ -107,8 +108,8 @@ func recenter_tile_map():
 
 func _on_tile_map_flag_count_changed(num_flags : int):
 	flag_label.set_text(str(num_flags))
-	animation_player.stop()
-	animation_player.play("press_indicator")
+	flag_animation.stop()
+	flag_animation.play("press_indicator")
 	SoundManager.flag_toggled()
 
 func _on_timer_timeout():
@@ -158,7 +159,7 @@ func _on_tile_map_lose():
 	timer.stop()
 	buttons.hide()
 	SoundManager.mine_exploded()
-	camera_shake.shake(0.5)
+	camera_shake.play("shake_camera")
 	lose_screen.show()
 	GlobalSettings.delete_save()
 	
