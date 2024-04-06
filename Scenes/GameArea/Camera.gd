@@ -7,17 +7,18 @@ extends Camera2D
 
 @onready var tile_map: TileMap = $"../TileMap"
 
-var min_zoom = Vector2(0.5, 0.5)
-var max_zoom = Vector2(1000, 1000)
+var min_zoom := Vector2(0.5, 0.5)
+var max_zoom: Vector2
 
 var mouse_pressed : bool = false
 var mouse_motion_buffer : InputEventMouseMotion
+var mouse_initial_pos : Vector2 = Vector2.ZERO
+var camera_initial_pos : Vector2 = Vector2.ZERO
 
-var tile_size : Vector2
+var gesture_processed : bool = false
 var grid_size : Vector2
 
 func _ready() -> void:
-	tile_size = Vector2(tile_map.get_tileset().get_tile_size())
 	grid_size = Vector2(GlobalSettings.settings.get_size())
 
 func _input(event):
@@ -38,7 +39,8 @@ func _input_gesture(event : InputEventGesture):
 		
 	else:
 		return
-		
+	
+	gesture_processed = true
 	ensure_grid_on_screen()
 	event_handled()
 
@@ -46,7 +48,10 @@ func _input_mouse(event : InputEventMouse):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			mouse_pressed = event.is_pressed()
-			if not mouse_pressed:
+			if mouse_pressed:
+				mouse_initial_pos = get_local_mouse_position()
+				camera_initial_pos = Vector2(position)
+			else:
 				mouse_motion_buffer = null
 		else:
 			var zoom_action = Input.get_axis("zoom_out", "zoom_in")
@@ -68,7 +73,14 @@ func _input_mouse(event : InputEventMouse):
 				else:
 					mouse_motion_buffer = mouse_motion
 					return
-			position -= mouse_motion.relative / zoom
+			
+			if gesture_processed:
+				mouse_initial_pos = get_local_mouse_position()
+				camera_initial_pos = position
+				gesture_processed = false
+				return
+			#position -= mouse_motion.relative / zoom
+			position = camera_initial_pos + (mouse_initial_pos - get_local_mouse_position())
 			ensure_grid_on_screen()
 
 
@@ -77,13 +89,11 @@ func event_handled():
 	get_viewport().set_input_as_handled()
 
 func ensure_grid_on_screen():
-	var grid_size = tile_map.get_size()
-	var tile_map_center = tile_map.position + (grid_size / 2)
-	var adjusted_grid_size = (grid_size / 2)
+	var tile_map_size = tile_map.get_size()
+	var half_map_size = (tile_map_size / 2)
+	var tile_map_center = tile_map.position + half_map_size
 	
-	var camera_limits : Rect2 = Rect2(tile_map_center - adjusted_grid_size, tile_map_center + adjusted_grid_size)
-	position.x = clamp(position.x, camera_limits.position.x, camera_limits.size.x)
-	position.y = clamp(position.y, camera_limits.position.y, camera_limits.size.y)
+	position = position.clamp(tile_map_center - half_map_size, tile_map_center + half_map_size)
 
 func mouse_zoom(zoom_in : bool):
 	var initial_size : Vector2 = get_viewport_rect().size * zoom
@@ -94,8 +104,7 @@ func mouse_zoom(zoom_in : bool):
 	var new_size : Vector2 = get_viewport_rect().size * zoom
 	var delta_size = new_size - initial_size
 	var mouse_pos = get_local_mouse_position()
-	position.x += delta_size.x * inverse_lerp(0, initial_size.x, mouse_pos.x)
-	position.y += delta_size.y * inverse_lerp(0, initial_size.y, mouse_pos.y)
+	position += delta_size * (mouse_pos / initial_size)
 	
 	ensure_grid_on_screen()
 
@@ -104,4 +113,6 @@ func reset():
 	set_zoom(Vector2.ONE)
 
 func update_zoom(new_zoom):
+	var relative_tile_size : Vector2 = get_viewport_rect().size / (tile_map.get_size() / Vector2(GlobalSettings.settings.get_size()))
+	max_zoom = Vector2.ONE * min(relative_tile_size.x, relative_tile_size.y)
 	set_zoom(clamp(new_zoom, min_zoom, max_zoom))

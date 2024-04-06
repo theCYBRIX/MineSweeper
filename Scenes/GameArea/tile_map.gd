@@ -107,6 +107,11 @@ func _ready():
 	set_physics_process(false)
 	set_process_unhandled_input(false)
 
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_WM_MOUSE_ENTER | NOTIFICATION_WM_MOUSE_EXIT:
+			if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): update_hover_status()
+
 #region Grid Updating
 
 func _process(_delta):
