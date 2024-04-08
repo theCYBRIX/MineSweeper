@@ -6,9 +6,7 @@ signal retry
 
 func _shortcut_input(event):
 	super._shortcut_input(event)
-	if(get_viewport().is_input_handled()):
-		return
-	elif is_visible(): 
+	if is_visible(): 
 		if event.is_action_pressed("ui_focus_next"):
 			retry_button.grab_focus()
 			get_viewport().set_input_as_handled()

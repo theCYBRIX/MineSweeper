@@ -27,7 +27,6 @@ signal preparation_finished
 @onready var pause_screen = $Overlays/PauseScreen
 @onready var win_screen: Control = $Overlays/WinScreen
 
-#@onready var camera_shake: Node = $HSplitContainer/TileMapArea/SubViewport/Camera/CameraShake
 @onready var camera_shake: AnimationPlayer = $HSplitContainer/TileMapArea/SubViewport/Camera/CameraShake/ShakeAnimation
 
 @export_group("Timer Colors", "timer")
@@ -43,26 +42,30 @@ var timer_color_tween : Tween
 var initializing : bool = true
 var new_game : bool = false
 
+var loading_cancelled : bool = false
+
 func _ready():
-	hide()
 	tile_map.hide()
 	
+	LoadingScreen.cancel_requested.connect(_on_loading_screen_cancel_requested)
 	await prepare_asynch()
-	if LoadingScreen.is_in_foreground():
-		SceneLoader.hide_loading_screen()
+	LoadingScreen.cancel_requested.disconnect(_on_loading_screen_cancel_requested)
+	
+	if loading_cancelled: return
+	
+	tile_map.show()
+	refresh_ui()
+	SceneLoader.hide_loading_screen()
+
 
 func prepare_asynch() -> Signal:
-	WorkerThreadPool.add_task(prepare.bind())
+	WorkerThreadPool.add_task(prepare)
 	return preparation_finished
+
 
 func prepare() -> void:
 	var game_state : GameState = GlobalSettings.get_initial_game_state()
-	
 	tile_map.prepare_grid(game_state)
-	call_deferred("show")
-	tile_map.call_deferred("show")
-	call_deferred("refresh_ui")
-	
 	initializing = false
 	call_deferred("emit_signal", "preparation_finished")
 
@@ -71,31 +74,23 @@ func refresh_ui():
 	timer_label.add_theme_color_override("font_color", timer_halted_color)
 	update_timer_text()
 	flag_label.set_text(str(tile_map.get_flag_count()))
-	mine_label.set_text(str(GlobalSettings.get_mines()))
+	mine_label.set_text(str(tile_map.game_state.num_mines))
 	if tile_map.game_state.first_tile_revealed:
 		ready_screen.show()
 	else:
 		tile_map_area.grab_focus()
 
 func _shortcut_input(event):
-	if (not paused) and not tile_map.game_over:
+	if (not paused) and not tile_map.game_over and not initializing:
 		if event.is_action_pressed("ui_cancel"):
-			if initializing:
-				return_to_main_menu()
-			else:
-				pause()
-		else:
-			return
+			pause()
 
 
 func _notification(what: int) -> void:
 	match(what):
-		NOTIFICATION_WM_CLOSE_REQUEST: #Back button pressed on Android or Escape pressed on desktop
+		NOTIFICATION_WM_CLOSE_REQUEST | NOTIFICATION_WM_GO_BACK_REQUEST: #Back button pressed on Android or Escape pressed on desktop
 			if tile_map.game_over: return
-			if initializing:
-				return_to_main_menu()
-			elif not paused:
-				pause()
+			if not paused: pause()
 		NOTIFICATION_APPLICATION_PAUSED: #application minimized on Android
 			if game_ongoing and not paused:
 				pause()
@@ -103,8 +98,7 @@ func _notification(what: int) -> void:
 
 
 func recenter_tile_map():
-	tile_map_camera.reset()
-	tile_map.fit_to_rect(tile_map.get_viewport_rect())
+	tile_map_camera.center_on_area(Rect2(tile_map.position, tile_map.get_size()))
 
 func _on_tile_map_flag_count_changed(num_flags : int):
 	flag_label.set_text(str(num_flags))
@@ -277,3 +271,8 @@ func _on_focus_entered() -> void:
 
 func _on_tile_map_safe_tile_count_changed(_num_safe: int) -> void:
 	if not tile_map.revealing: SoundManager.tile_revealed()
+
+
+func _on_loading_screen_cancel_requested():
+	loading_cancelled = true
+	return_to_main_menu()

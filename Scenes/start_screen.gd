@@ -20,6 +20,8 @@ func _shortcut_input(event):
 			start_button.grab_focus()
 		elif event.is_action_pressed("ui_focus_prev"):
 			quit_button.grab_focus()
+		elif event.is_action_pressed("ui_cancel") and prompt_buttons.is_visible():
+			exit_prompt()
 		else:
 			return
 		get_viewport().set_input_as_handled()
@@ -27,7 +29,12 @@ func _shortcut_input(event):
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		if not settings_menu.is_visible(): close_game()
+		if settings_menu.is_visible(): return
+		if animation_player.is_playing(): await animation_player.animation_finished
+		if prompt_buttons.is_visible():
+			exit_prompt()
+		else:
+			close_game()
 
 func _on_new_game_pressed():
 	GlobalSettings.use_saved_state = false
@@ -72,6 +79,8 @@ func set_prompt_buttons_block_signals(disabled : bool = true):
 func close_game():
 	get_tree().root.propagate_notification(NOTIFICATION_WM_CLOSE_REQUEST)
 
+func exit_prompt():
+	animation_player.play("exit_prompt")
 
 func _on_continue_pressed() -> void:
 	GlobalSettings.use_saved_state = true
@@ -86,7 +95,7 @@ func _on_start_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
-	animation_player.play("exit_prompt")
+	exit_prompt()
 
 func tween_into_prompt():
 	var tween : Tween = get_tree().create_tween().parallel()

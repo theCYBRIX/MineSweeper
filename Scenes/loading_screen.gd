@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal safe_to_load
+signal cancel_requested
 
 @onready var bg_animator : AnimationPlayer = $Background/BackgroundAnimator
 @onready var foreground_element_fader : AnimationPlayer = $Background/ForegroundElements/ElementsFader
@@ -23,6 +24,23 @@ var in_foreground : bool = false :
 
 func _ready() -> void:
 	cancel_label.set_text("Press %s to cancel." % ("back" if GlobalSettings.os_is_mobile() else "escape"))
+
+
+func _shortcut_input(event: InputEvent) -> void:
+	if not is_inside_tree() or not in_foreground: return
+	if event.is_action_pressed("ui_cancel"):
+		cancel_requested.emit()
+		get_viewport().set_input_as_handled()
+
+
+
+func _notification(what: int) -> void:
+	if not is_inside_tree() or not in_foreground: return
+	match(what):
+		NOTIFICATION_WM_CLOSE_REQUEST | NOTIFICATION_WM_GO_BACK_REQUEST: #Back button pressed on Android or Escape pressed on desktop
+			cancel_requested.emit()
+			get_viewport().set_input_as_handled()
+
 
 func fade_in() -> Signal:
 	animation_wait_finish()
@@ -84,7 +102,7 @@ func stop_timers():
 	cancel_label_timer.stop()
 
 func animation_wait_finish():
-	if bg_animator.is_playing():
+	if bg_animator and bg_animator.is_playing():
 		await bg_animator.animation_finished
 
 func set_in_foreground(value : bool):

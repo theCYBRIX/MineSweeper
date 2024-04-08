@@ -38,9 +38,9 @@ var initialized = false
 func _init(initialize : bool = false) -> void:
 	if initialize: reset()
 
-func reset():
-	grid_area = GlobalSettings.settings.get_grid_rect()
-	num_mines = GlobalSettings.get_mines()
+func reset(grid_rect : Rect2i = GlobalSettings.settings.get_grid_rect(), mine_count : int = GlobalSettings.get_mines()):
+	grid_area = grid_rect
+	num_mines = mine_count
 	
 	var num_columns = grid_area.size.x
 	var num_rows = grid_area.size.y
@@ -130,8 +130,8 @@ func tile_set_state(tile : Vector2i, state : TileState) -> bool:
 
 func num_neighbour_mines(tile : Vector2i) -> int:
 	var neighbour_mines : int = 0
-	for column in range(max(tile.x - 1, 0), min(tile.x + 2, GlobalSettings.settings.get_columns())):
-		for row in range(max(tile.y - 1, 0), min(tile.y + 2, GlobalSettings.settings.get_rows())):
+	for column in range(maxi(tile.x - 1, 0), mini(tile.x + 2, get_num_columns())):
+		for row in range(maxi(tile.y - 1, 0), mini(tile.y + 2, get_num_rows())):
 			if mine_map[column][row]: neighbour_mines += 1
 	return neighbour_mines
 
@@ -181,6 +181,12 @@ func set_num_safe_tiles(safe : int) -> void:
 	num_safe_tiles = safe
 	safe_tile_count_changed.emit(safe)
 	count_mutex.unlock()
+
+func get_num_columns() -> int:
+	return grid_area.size.x
+
+func get_num_rows() -> int:
+	return grid_area.size.y
 
 func lock():
 	state_map_mutex.lock()

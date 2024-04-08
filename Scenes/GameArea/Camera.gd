@@ -113,6 +113,16 @@ func reset():
 	set_zoom(Vector2.ONE)
 
 func update_zoom(new_zoom):
-	var relative_tile_size : Vector2 = get_viewport_rect().size / (tile_map.get_size() / Vector2(GlobalSettings.settings.get_size()))
-	max_zoom = Vector2.ONE * min(relative_tile_size.x, relative_tile_size.y)
+	var tile_map_size : Vector2 = tile_map.get_size()
+	var viewport_size = get_viewport_rect().size
+	var relative_grid_size : Vector2 = viewport_size / tile_map_size
+	var relative_tile_size : Vector2 = viewport_size / (tile_map_size / Vector2(tile_map.game_state.grid_area.size))
+	max_zoom = Vector2.ONE * minf(relative_tile_size.x, relative_tile_size.y)
+	min_zoom = Vector2.ONE * minf(relative_grid_size.x, relative_grid_size.y) * 0.5
 	set_zoom(clamp(new_zoom, min_zoom, max_zoom))
+
+func center_on_area(area: Rect2, centered: bool = true, h_alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_CENTER, v_alignment: VerticalAlignment = VERTICAL_ALIGNMENT_CENTER):
+	position = area.position + (area.size / 2) 
+	var visible_rect := get_viewport_rect()
+	var zoom_to_fill = visible_rect.size / area.size
+	zoom = Vector2.ONE * minf(zoom_to_fill.x, zoom_to_fill.y)
