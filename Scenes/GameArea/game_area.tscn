@@ -245,6 +245,7 @@ light_mask = 0
 
 [node name="Camera" type="Camera2D" parent="HSplitContainer/TileMapArea/SubViewport"]
 script = ExtResource("6_irmw6")
+click_cancel_thresh = 20
 
 [node name="CameraShake" parent="HSplitContainer/TileMapArea/SubViewport/Camera" node_paths=PackedStringArray("camera") instance=ExtResource("9_3d465")]
 camera = NodePath("..")
@@ -295,6 +296,6 @@ visible = false
 [connection signal="quit" from="Overlays/PauseScreen" to="." method="_on_pause_screen_quit"]
 [connection signal="resume" from="Overlays/PauseScreen" to="." method="_on_pause_screen_resume"]
 [connection signal="quit" from="Overlays/ReadyScreen" to="." method="return_to_main_menu"]
-[connection signal="start" from="Overlays/ReadyScreen" to="." method="_on_ready_screen_start"]
 [connection signal="start" from="Overlays/ReadyScreen" to="." method="_on_tile_map_game_started"]
+[connection signal="start" from="Overlays/ReadyScreen" to="." method="_on_ready_screen_start"]
 [connection signal="visibility_changed" from="Overlays/ReadyScreen" to="." method="_on_ready_screen_visibility_changed"]

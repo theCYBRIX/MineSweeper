@@ -7,11 +7,10 @@ extends Camera2D
 
 @onready var tile_map: TileMap = $"../TileMap"
 
-var min_zoom := Vector2(0.5, 0.5)
+var min_zoom : Vector2
 var max_zoom: Vector2
 
 var mouse_pressed : bool = false
-var mouse_motion_buffer : InputEventMouseMotion
 var mouse_initial_pos : Vector2 = Vector2.ZERO
 var camera_initial_pos : Vector2 = Vector2.ZERO
 
@@ -51,8 +50,6 @@ func _input_mouse(event : InputEventMouse):
 			if mouse_pressed:
 				mouse_initial_pos = get_local_mouse_position()
 				camera_initial_pos = Vector2(position)
-			else:
-				mouse_motion_buffer = null
 		else:
 			var zoom_action = Input.get_axis("zoom_out", "zoom_in")
 			if zoom_action != 0:
@@ -62,25 +59,22 @@ func _input_mouse(event : InputEventMouse):
 	elif event is InputEventMouseMotion:
 		if mouse_pressed:
 			get_viewport().set_input_as_handled()
-			var mouse_motion : InputEventMouseMotion = event
-			if mouse_motion_buffer:
-				mouse_motion.accumulate(mouse_motion_buffer)
-				mouse_motion_buffer = null
+
+			var mouse_position = get_local_mouse_position()
 				
 			if tile_map.input_is_click:
-				if mouse_motion.relative.length() > click_cancel_thresh:
+				if (mouse_position - mouse_initial_pos).length() > click_cancel_thresh:
 					tile_map.cancel_click()
 				else:
-					mouse_motion_buffer = mouse_motion
 					return
 			
 			if gesture_processed:
-				mouse_initial_pos = get_local_mouse_position()
+				mouse_initial_pos = mouse_position
 				camera_initial_pos = position
 				gesture_processed = false
 				return
-			#position -= mouse_motion.relative / zoom
-			position = camera_initial_pos + (mouse_initial_pos - get_local_mouse_position())
+			
+			position = camera_initial_pos + (mouse_initial_pos - mouse_position)
 			ensure_grid_on_screen()
 
 
@@ -121,7 +115,7 @@ func update_zoom(new_zoom):
 	min_zoom = Vector2.ONE * minf(relative_grid_size.x, relative_grid_size.y) * 0.5
 	set_zoom(clamp(new_zoom, min_zoom, max_zoom))
 
-func center_on_area(area: Rect2, centered: bool = true, h_alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_CENTER, v_alignment: VerticalAlignment = VERTICAL_ALIGNMENT_CENTER):
+func center_on_area(area: Rect2):
 	position = area.position + (area.size / 2) 
 	var visible_rect := get_viewport_rect()
 	var zoom_to_fill = visible_rect.size / area.size
