@@ -20,6 +20,8 @@ metadata/_edit_pinned_properties_ = [&"text", &"value"]
 text = "Rows"
 
 [node name="SpinBox" parent="SettingsContainer/RowsInput" index="1"]
+min_value = 1.0
+max_value = 500.0
 value = 20.0
 
 [node name="ColumnsInput" parent="SettingsContainer" index="1" instance=ExtResource("3_6d6b1")]
@@ -32,6 +34,8 @@ metadata/_edit_pinned_properties_ = [&"text", &"value"]
 text = "Columns"
 
 [node name="SpinBox" parent="SettingsContainer/ColumnsInput" index="1"]
+min_value = 1.0
+max_value = 500.0
 value = 20.0
 
 [node name="SquareGridOption" type="CheckButton" parent="SettingsContainer" index="2"]

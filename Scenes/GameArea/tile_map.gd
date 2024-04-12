@@ -143,7 +143,7 @@ func reveal_batch():
 	var index : int = 0
 	while index < batch_coords.size():
 		var to_reveal : NumberedCell = batch_coords[index]
-		set_revealed(to_reveal.index, to_reveal.number)
+		set_revealed(to_reveal.index, to_reveal.value)
 		index += 1
 
 func prepare_batch():
@@ -562,24 +562,14 @@ func _on_bulk_reveal_ended() -> void:
 
 class NumberedCell:
 	var index : Vector2i
-	var number : int
+	var value : int
 	
-	func _init(index : Vector2i, number : int) -> void:
-		self.index = index
-		self.number = number
-
-func sort_numbered_cell(first : NumberedCell, second : NumberedCell, from : Vector2i) -> bool:
-	return sort_by_dist(first.index, second.index, from)
-
-func sort_by_dist(first : Vector2i, second : Vector2i, from : Vector2i) -> bool:
-	return distance(from, first) < distance(from, second)
-
-func distance(first : Vector2i, second : Vector2i) -> float:
-	return (second - first).length()
+	func _init(idx : Vector2i, number : int) -> void:
+		self.index = idx
+		self.value = number
 
 
-
-func _on_safe_tile_count_changed(num_safe: int) -> void:
+func _on_safe_tile_count_changed(_num_safe: int) -> void:
 	game_state.first_tile_revealed = true
 	game_started.emit()
 
