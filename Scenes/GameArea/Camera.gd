@@ -5,7 +5,7 @@ extends Camera2D
 @export_group("Zoom multipliers", "multiplier_")
 @export var mouse_zoom_delta : float = 0.1
 
-@onready var tile_map: TileMap = $"../TileMap"
+var tile_map: Node2D : set = set_tile_map
 
 var min_zoom : Vector2
 var max_zoom: Vector2
@@ -19,15 +19,19 @@ var grid_size : Vector2
 
 func _ready() -> void:
 	grid_size = Vector2(GlobalSettings.settings.get_size())
+	if not tile_map:
+		set_process_input(false)
+	
 
-func _input(event):
+func _input(event) -> void:
 	if event is InputEventGesture:
 		_input_gesture(event)
 		
 	elif event is InputEventMouse:
 		_input_mouse(event)
 
-func _input_gesture(event : InputEventGesture):
+
+func _input_gesture(event : InputEventGesture) -> void:
 	if event is InputEventPanGesture:
 		var gesture = event as InputEventPanGesture
 		position += (gesture.get_delta() / zoom) * 2
@@ -43,7 +47,7 @@ func _input_gesture(event : InputEventGesture):
 	ensure_grid_on_screen()
 	event_handled()
 
-func _input_mouse(event : InputEventMouse):
+func _input_mouse(event : InputEventMouse) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			mouse_pressed = event.is_pressed()
@@ -78,18 +82,18 @@ func _input_mouse(event : InputEventMouse):
 			ensure_grid_on_screen()
 
 
-func event_handled():
+func event_handled() -> void:
 	tile_map.cancel_click()
 	get_viewport().set_input_as_handled()
 
-func ensure_grid_on_screen():
+func ensure_grid_on_screen() -> void:
 	var tile_map_size = tile_map.get_size()
 	var half_map_size = (tile_map_size / 2)
 	var tile_map_center = tile_map.position + half_map_size
 	
 	position = position.clamp(tile_map_center - half_map_size, tile_map_center + half_map_size)
 
-func mouse_zoom(zoom_in : bool):
+func mouse_zoom(zoom_in : bool) -> void:
 	var initial_size : Vector2 = get_viewport_rect().size * zoom
 	
 	var zoom_multiplier =  (1 + mouse_zoom_delta) if zoom_in else (1 - mouse_zoom_delta)
@@ -102,11 +106,11 @@ func mouse_zoom(zoom_in : bool):
 	
 	ensure_grid_on_screen()
 
-func reset():
+func reset() -> void:
 	set_position(Vector2.ZERO)
 	set_zoom(Vector2.ONE)
 
-func update_zoom(new_zoom):
+func update_zoom(new_zoom) -> void:
 	var tile_map_size : Vector2 = tile_map.get_size()
 	var viewport_size = get_viewport_rect().size
 	var relative_grid_size : Vector2 = viewport_size / tile_map_size
@@ -115,8 +119,12 @@ func update_zoom(new_zoom):
 	min_zoom = Vector2.ONE * minf(relative_grid_size.x, relative_grid_size.y) * 0.5
 	set_zoom(clamp(new_zoom, min_zoom, max_zoom))
 
-func center_on_area(area: Rect2):
+func center_on_area(area: Rect2) -> void:
 	position = area.position + (area.size / 2) 
 	var visible_rect := get_viewport_rect()
 	var zoom_to_fill = visible_rect.size / area.size
 	zoom = Vector2.ONE * minf(zoom_to_fill.x, zoom_to_fill.y)
+
+func set_tile_map(map : Node2D) -> void:
+	tile_map = map
+	set_process_input(tile_map != null)

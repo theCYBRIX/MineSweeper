@@ -55,6 +55,11 @@ func prepare_animation():
 	update_text_size_track(maximize_animation, timer_label.get_name(), timer_label_initial_font_size, timer_target_font_size)
 
 
+func _control_set_rect(control : Control, rect : Rect2):
+	control.position = rect.position
+	control.size = rect.size
+
+
 func update_rect_track(animation : Animation, node_path : String, start : Rect2, end : Rect2):
 	var position_property = "%s:position" % node_path
 	var size_property = "%s:size" % node_path
@@ -98,6 +103,12 @@ func set_timer_label(text : String):
 func set_mine_label(text : String):
 	mine_label.set_text(text)
 
+func play_reveal():
+	animation_player.play("slow_reveal")
+	animation_player.advance(0)
+	maximize(initial_summary_tween_time)
+	button_animator.advance(0)
+	foreground_animator.advance(0)
 
 func _on_grid_view_toggled(state: bool) -> void:
 	if state:
@@ -109,5 +120,4 @@ func _on_grid_view_toggled(state: bool) -> void:
 func _on_visibility_changed() -> void:
 	if is_visible():
 		if is_node_ready():
-			animation_player.play("slow_reveal")
-			maximize(initial_summary_tween_time)
+			play_reveal()

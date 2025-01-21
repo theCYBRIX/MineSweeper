@@ -256,6 +256,7 @@ mouse_filter = 2
 theme = ExtResource("2_y3336")
 
 [node name="ForegroundButtons" type="Control" parent="Buttons"]
+modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

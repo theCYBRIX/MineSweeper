@@ -14,6 +14,11 @@ signal start_game
 @onready var prompt_area: Control = $PromptArea
 
 
+func _ready() -> void:
+	if GlobalSettings.os_is_web():
+		quit_button.visible = false
+
+
 func _shortcut_input(event):
 	if is_visible(): 
 		if event.is_action_pressed("ui_focus_next"):
@@ -51,7 +56,7 @@ func _on_quit_button_pressed():
 
 func load_game_area():
 	start_game.emit()
-	SceneLoader.switch_to_scene("game_area", false)
+	await SceneLoader.switch_to_scene("game_area", false)
 
 func _on_settings_menu_hidden():
 	set_child_buttons_disabled(main_buttons, false)

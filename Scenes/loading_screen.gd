@@ -23,7 +23,7 @@ var in_foreground : bool = false :
 	get = is_in_foreground
 
 func _ready() -> void:
-	cancel_label.set_text("Press %s to cancel." % ("back" if GlobalSettings.os_is_mobile() else "escape"))
+	cancel_label.set_text("Press %s to cancel." % ("back/escape" if GlobalSettings.os_is_web() else ("back" if GlobalSettings.os_is_mobile() else "escape")))
 
 
 func _shortcut_input(event: InputEvent) -> void:
@@ -31,7 +31,11 @@ func _shortcut_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		cancel_requested.emit()
 		get_viewport().set_input_as_handled()
-
+	if event is InputEventKey:
+		if event.is_pressed():
+			if event.keycode == KEY_BACKSPACE:
+				cancel_requested.emit()
+				get_viewport().set_input_as_handled()
 
 
 func _notification(what: int) -> void:

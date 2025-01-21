@@ -1,29 +1,30 @@
-extends TileMap
+extends Node2D
 
-const LAYERS = {
-	"tiles" : 0,
-	"contents" : 1,
-	"mines" : 2,
-	"flags" : 3
-}
+const TILE_MAP : TileSet = preload("res://Resources/tile_map.tres")
+const NUMBER_LAYER : PackedScene = preload("res://Scenes/GameArea/number_layer.tscn")
+const MINE_LAYER : PackedScene = preload("res://Scenes/GameArea/mine_layer.tscn")
 
-const TILES = {
-	"obscured" : Vector2i(0, 0),
-	"highlighted" : Vector2i(1, 0),
-	"revealed" : Vector2i(2, 0),
-	"exploded" : Vector2i(3, 0),
-	0 : Vector2i(2, 0),
-	1 : Vector2i(0, 1),
-	2 : Vector2i(1, 1),
-	3 : Vector2i(2, 1),
-	4 : Vector2i(3, 1),
-	5 : Vector2i(0, 2),
-	6 : Vector2i(1, 2),
-	7 : Vector2i(2, 2),
-	8 : Vector2i(3, 2),
-	"mine" : Vector2i(0, 3),
-	"flag" : Vector2i(1, 3),
-}
+const OBSCURED_TILE := Vector2i(0, 0)
+const HIGHLIGHTED_TILE := Vector2i(1, 0)
+const REVEALED_TILE := Vector2i(2, 0)
+const EXPLODED_TILE := Vector2i(3, 0)
+const MINE_TILE := Vector2i(0, 3)
+const FLAG_TILE := Vector2i(1, 3)
+
+const MIN_PROCESSING_SPEED := 0.005
+const PREPARE_TIME_LIMIT_MICROSEC := 1_000_000 / 120.0
+
+const NUMBER_TILES := [
+	Vector2i(2, 0),
+	Vector2i(0, 1),
+	Vector2i(1, 1),
+	Vector2i(2, 1),
+	Vector2i(3, 1),
+	Vector2i(0, 2),
+	Vector2i(1, 2),
+	Vector2i(2, 2),
+	Vector2i(3, 2),
+]
 
 signal win
 signal lose
@@ -39,8 +40,8 @@ signal flag_count_changed(num_flags : int)
 @export_range(0, 1) var desktop_click_thresh : float = 0.25
 @export_range(0, 1) var mobile_click_thresh : float = 0.15
 
-@onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var click_timer: Timer = $ClickTimer
+
 var input_is_click : bool = false
 
 var mouse_pressed : bool = false
@@ -53,51 +54,81 @@ var pressed_tile_is_valid : bool = false
 var game_over : bool
 
 var preparing : bool
-var preparing_pointer : Vector2i
+var preparing_index : int = 0
 
-@export var max_reveal_batch_size : int = 500
-var reveal_batch_size : int
-var revealing : bool = false : get = is_revealing
+var tile_layer : TileMapLayer
+var number_layer : TileMapLayer
+var mine_layer : TileMapLayer
+var flag_layer : TileMapLayer
 
-var reveal_queue : Array[NumberedCell] = []
-var reveal_queue_mutex : Mutex = Mutex.new()
-var reveal_origin : Vector2i
+var game_state : GameState : set = set_game_state
+var _max_tile_updates_per_frame : int
 
-var physics_queue_depleted : Semaphore
-var waiting_on_queue_depletion : bool = false
-var physics_batch_revealed : Semaphore
-var waiting_on_batch_reveal : bool = false
+var _revealing : bool = false
 
-const NO_ACTIVE_TASK : int = -1
-var reveal_process_id : int = NO_ACTIVE_TASK
-
-var game_state : GameState
+var _tile_update_queue : Array[Vector2i] = []
+var _update_queue_mutex : Mutex = Mutex.new()
+var _currently_revealing : Array[Vector2i] = []
+var _currently_revealing_index : int = 0
+var _reveal_worker_thread_id : int
 
 func _init():
-	update_batch_size()
+	tile_layer = TileMapLayer.new()
+	flag_layer = TileMapLayer.new()
+	number_layer = NUMBER_LAYER.instantiate()
+	mine_layer = MINE_LAYER.instantiate()
+	
+	tile_layer.collision_enabled = false
+	flag_layer.collision_enabled = false
+	tile_layer.collision_visibility_mode = TileMapLayer.DEBUG_VISIBILITY_MODE_FORCE_HIDE
+	flag_layer.collision_visibility_mode = TileMapLayer.DEBUG_VISIBILITY_MODE_FORCE_HIDE
+	
+	tile_layer.navigation_enabled = false
+	flag_layer.navigation_enabled = false
+	tile_layer.navigation_visibility_mode = TileMapLayer.DEBUG_VISIBILITY_MODE_FORCE_HIDE
+	flag_layer.navigation_visibility_mode = TileMapLayer.DEBUG_VISIBILITY_MODE_FORCE_HIDE
+	
+	tile_layer.name = "TileLayer"
+	number_layer.name = "NumberLayer"
+	mine_layer.name = "MineLayer"
+	flag_layer.name = "FlagLayer"
+	
+	tile_layer.tile_set = TILE_MAP
+	number_layer.tile_set = TILE_MAP
+	mine_layer.tile_set = TILE_MAP
+	flag_layer.tile_set = TILE_MAP
+	
+	add_child(tile_layer, false, INTERNAL_MODE_FRONT)
+	add_child(number_layer, false, INTERNAL_MODE_FRONT)
+	add_child(mine_layer, false, INTERNAL_MODE_FRONT)
+	add_child(flag_layer, false, INTERNAL_MODE_FRONT)
+	
+	if game_state:
+		update_full_map()
+	
+	update_tiles_per_frame()
+
 
 func _enter_tree() -> void:
-	GlobalSettings.settings.changed.connect(update_batch_size.bind())
+	GlobalSettings.settings.changed.connect(update_tiles_per_frame.bind())
 
 func _exit_tree() -> void:
-	call_deferred("remove_batch_size_updates")
-	if reveal_process_id != NO_ACTIVE_TASK:
-		while not WorkerThreadPool.is_task_completed(reveal_process_id):
-			if preparing:
-				preparing = false
-			if revealing:
-				revealing = false
-			batch_revealed()
-			queue_depleted()
-			await get_tree().physics_frame
+	if _revealing:
+		_revealing = false
+		if not WorkerThreadPool.is_task_completed(_reveal_worker_thread_id):
+			cancel_free()
+			WorkerThreadPool.wait_for_task_completion(_reveal_worker_thread_id)
+			queue_free()
 
 func remove_batch_size_updates():
-	GlobalSettings.settings.changed.disconnect(update_batch_size.bind())
+	GlobalSettings.settings.changed.disconnect(update_tiles_per_frame().bind())
 
-func update_batch_size():
-	reveal_batch_size = max(1, max_reveal_batch_size * GlobalSettings.settings.get_processing_speed())
+func update_tiles_per_frame():
+	if game_state:
+		_max_tile_updates_per_frame = game_state.grid_area.get_area() if GlobalSettings.settings.get_animation_duration() == 0 else maxi(1, roundi(game_state.grid_area.get_area() / (GlobalSettings.settings.get_animation_duration() * 60.0)))
 
 func _ready():
+	
 	if GlobalSettings.os_is_mobile():
 		click_timer.set_wait_time(mobile_click_thresh)
 	else:
@@ -105,113 +136,156 @@ func _ready():
 	
 	set_process(false)
 	set_physics_process(false)
-	set_process_unhandled_input(false)
+	#set_process_unhandled_input(false)
+
+
+func _process(delta: float) -> void:
+	var num_revealed : int = 0
+	while num_revealed < _max_tile_updates_per_frame:
+		if _currently_revealing_index >= _currently_revealing.size():
+			if _tile_update_queue.is_empty():
+				break
+			_update_queue_mutex.lock()
+			var slice_end_index := mini(_max_tile_updates_per_frame, _tile_update_queue.size())
+			_currently_revealing = _tile_update_queue.slice(0, slice_end_index)
+			_tile_update_queue = _tile_update_queue.slice(slice_end_index)
+			_update_queue_mutex.unlock()
+			_currently_revealing_index = 0
+		update_tile(_currently_revealing[_currently_revealing_index])
+		_currently_revealing_index += 1
+		num_revealed += 1
+	
+	if _tile_update_queue.is_empty() and WorkerThreadPool.is_task_completed(_reveal_worker_thread_id) and _currently_revealing_index >= _currently_revealing.size():
+		set_process(false)
+		_revealing = false
+		_set_block_map_signals(false)
+		_currently_revealing.clear()
+		_currently_revealing_index = 0
+		WorkerThreadPool.wait_for_task_completion(_reveal_worker_thread_id)
+		bulk_reveal_ended.emit()
+		_check_win()
+
 
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_MOUSE_ENTER | NOTIFICATION_WM_MOUSE_EXIT:
 			if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): update_hover_status()
 
+func resume() -> void: 
+	if not game_state.reveal_queue.is_empty():
+		_start_reveal_chain_reaction()
+
+
+func stop() -> void: 
+	if _revealing:
+		set_process(false)
+		if not WorkerThreadPool.is_task_completed(_reveal_worker_thread_id):
+			_revealing = false
+			WorkerThreadPool.wait_for_task_completion(_reveal_worker_thread_id)
+
 #region Grid Updating
 
-func _process(_delta):
-	if preparing:
-		SceneLoader.set_loading_progress( float((preparing_pointer.x * game_state.grid_area.size.y) + preparing_pointer.y) / (game_state.grid_area.get_area()))
 
-
-func _physics_process(_delta):
-	if revealing:
-		reveal_batch()
-	elif preparing:
-		prepare_batch()
-
-func reveal_batch():
-	var batch_coords : Array[NumberedCell]
+func _populate_reveal_queue():
+	_revealing = true
 	
-	reveal_queue_mutex.lock()
-	if reveal_queue.size() > 0:
-		batch_coords = reveal_queue.slice(0, reveal_batch_size)
-		
-		reveal_queue = reveal_queue.slice(reveal_batch_size)
-	else:
-		queue_depleted()
-		
-	reveal_queue_mutex.unlock()
+	call_deferred("emit_signal", "bulk_reveal_started")
 	
-	batch_revealed()
-	
-	var index : int = 0
-	while index < batch_coords.size():
-		var to_reveal : NumberedCell = batch_coords[index]
-		set_revealed(to_reveal.index, to_reveal.value)
-		index += 1
-
-func prepare_batch():
-	if preparing_pointer.x >= game_state.grid_area.size.x:
-		queue_depleted()
-	else:
-		var i : int = 0
-		while i < reveal_batch_size:
-			match game_state.tile_get_state(preparing_pointer):
-				GameState.TileState.FLAGGED:
-					set_obscured_texture(preparing_pointer)
-					set_flag_texture(preparing_pointer)
-				GameState.TileState.OBSCURED:
-					set_obscured_texture(preparing_pointer)
-				GameState.TileState.REVEALED:
-					set_revealed_texture(preparing_pointer)
-					set_number_texture(preparing_pointer, game_state.num_neighbour_mines(preparing_pointer))
-			
-			preparing_pointer += Vector2i.DOWN
-			if preparing_pointer.y >= game_state.grid_area.size.y:
-				preparing_pointer = Vector2i(preparing_pointer.x + 1, 0)
-				if preparing_pointer.x >= game_state.grid_area.size.x:
-					break
-			i += 1
-
-func wait_for_queue_depletion():
-	physics_queue_depleted = Semaphore.new()
-	waiting_on_queue_depletion = true
-	physics_queue_depleted.wait()
-	waiting_on_queue_depletion = false
-
-func queue_depleted():
-	if waiting_on_queue_depletion: physics_queue_depleted.post()
-
-func wait_for_batch_completion():
-	physics_batch_revealed = Semaphore.new()
-	waiting_on_batch_reveal = true
-	physics_batch_revealed.wait()
-	waiting_on_batch_reveal = false
-
-func batch_revealed():
-	if waiting_on_batch_reveal: physics_batch_revealed.post()
-
-func prepare_grid(initial_state : GameState):
-	set_game_state(initial_state)
-	
-	preparing = true
-	
-	preparing_pointer = Vector2i.ZERO
-	
-	call_deferred("set_physics_process", true)
 	call_deferred("set_process", true)
 	
-	if preparing:
-		wait_for_queue_depletion()
-		preparing = false
+	_set_block_map_signals(true)
 	
-	call_deferred("set_physics_process", false)
-	call_deferred("set_process", false)
-	call_deferred("set_process_unhandled_input", true)
+	game_state.set_block_signals(true)
+	
+	var reveal_queue : Array[Vector2i] = game_state.reveal_queue.duplicate(true)
+	var buffer_index : int = 0
+	
+	while _revealing and not is_queued_for_deletion():
+		if buffer_index >= reveal_queue.size():
+			reveal_queue.clear()
+			break
+		
+		var to_reveal = reveal_queue[buffer_index]
+		buffer_index += 1
+		
+		if not game_state.is_tile_obscured(to_reveal):
+			continue
+		
+		game_state.set_tile_revealed(to_reveal)
+		decrement_safe_tile_count()
+		
+		var neighbour_mines : int = game_state.num_neighbour_mines(to_reveal)
+		
+		if neighbour_mines == 0:
+			if not _revealing or is_queued_for_deletion():
+				break
+			reveal_queue = reveal_queue.slice(buffer_index)
+			buffer_index = 0
+			reveal_queue.append_array(get_neighbours(to_reveal))
+		
+		_update_queue_mutex.lock()
+		_tile_update_queue.append(to_reveal)
+		_update_queue_mutex.unlock()
+	
+	game_state.reveal_queue.clear()
+	game_state.reveal_queue.append_array(reveal_queue)
+	
+	game_state.set_block_signals(false)
+
+
+
+func _set_block_map_signals(enabled : bool = true):
+	tile_layer.set_block_signals(enabled)
+	number_layer.set_block_signals(enabled)
+	mine_layer.set_block_signals(enabled)
+	flag_layer.set_block_signals(enabled)
+
+
+func update_full_map():
+	var max_x : int = game_state.grid_area.size.x
+	var max_y : int = game_state.grid_area.size.y
+	var x : int = 0
+	var y : int = 0
+	preparing_index = 0
+	var start_time := Time.get_ticks_usec()
+	while y < max_y:
+		if (Time.get_ticks_usec() - start_time) >= PREPARE_TIME_LIMIT_MICROSEC:
+			if is_queued_for_deletion():
+				return
+			SceneLoader.set_loading_progress( float(preparing_index) / (max_x * max_y))
+			await get_tree().process_frame
+			if is_queued_for_deletion():
+				return
+			start_time = Time.get_ticks_usec()
+		
+		var index := Vector2i(x, y)
+		update_tile(index)
+		
+		x += 1
+		if x == max_x:
+			x = 0
+			y += 1
+		
+		preparing_index += 1
 
 func set_game_state(state : GameState):
 	state.prepare()
 	game_state = state
 	game_state.flag_count_changed.connect(on_flag_count_changed.bind())
 	game_state.safe_tile_count_changed.connect(on_safe_tile_count_changed.bind())
-	
+	update_tiles_per_frame()
 	GlobalSettings.game_state = game_state
+
+func update_tile(index : Vector2i):
+	match game_state.tile_get_state(index):
+		GameState.TileState.FLAGGED:
+			set_obscured_texture(index)
+			set_flag_texture(index)
+		GameState.TileState.OBSCURED:
+			set_obscured_texture(index)
+		GameState.TileState.REVEALED:
+			set_revealed_texture(index)
+			set_number_texture(index, game_state.num_neighbour_mines(index))
 
 #endregion
 
@@ -227,7 +301,7 @@ func _unhandled_input(event):
 				else:
 					on_mouse_released()
 			elif event.is_action_pressed("toggle_flag"):
-				if not game_over: toggle_flag(local_to_map(get_local_mouse_position()))
+				if not game_over: toggle_flag(flag_layer.local_to_map(get_local_mouse_position()))
 			else:
 				return
 		elif event is InputEventMouseMotion:
@@ -241,22 +315,22 @@ func _unhandled_input(event):
 				on_win()
 
 func on_mouse_pressed():
-	pressed_tile = local_to_map(get_local_mouse_position())
+	pressed_tile = tile_layer.local_to_map(get_local_mouse_position())
 	pressed_tile_is_valid = game_state.is_valid_tile(pressed_tile)
 	if pressed_tile_is_valid:
-		if (not game_over) and (not revealing):
+		if (not game_over) and (not _revealing):
 			set_tile_pressed(pressed_tile)
 			queue_click()
 
 func on_mouse_released():
-	if input_is_click and local_to_map(get_local_mouse_position()) == pressed_tile:
+	if input_is_click and tile_layer.local_to_map(get_local_mouse_position()) == pressed_tile:
 		cancel_click()
 		reveal_tile(pressed_tile)
 	else:
 		pressed_tile = -Vector2i.ONE
 
 func update_hover_status():
-	var under_mouse = local_to_map(get_local_mouse_position())
+	var under_mouse = tile_layer.local_to_map(get_local_mouse_position())
 	if under_mouse == hovered_tile: return
 	
 	if hovered_is_valid and not game_state.is_tile_revealed(hovered_tile):
@@ -321,7 +395,7 @@ func fit_to_rect(area : Rect2):
 	self.scale *= relative_scale
 
 func get_size() -> Vector2:
-	return Vector2(get_used_rect().size * self.get_tileset().get_tile_size()) * scale
+	return Vector2(tile_layer.get_used_rect().size * tile_layer.get_tile_set().get_tile_size()) * scale
 
 func set_tile_pressed(index : Vector2i):
 	if game_state.is_valid_tile(index):
@@ -347,32 +421,31 @@ func on_mine_exploded(index : Vector2i):
 	lose.emit()
 
 func set_obscured_texture(tile_index : Vector2i):
-	set_cell(LAYERS["tiles"], tile_index, 0, TILES.get("obscured"))
+	tile_layer.set_cell(tile_index, 0, OBSCURED_TILE)
 
 func set_highlighted_texture(tile_index : Vector2i):
-	set_cell(LAYERS["tiles"], tile_index, 0, TILES.get("highlighted"))
+	tile_layer.set_cell(tile_index, 0, HIGHLIGHTED_TILE)
 
 func set_revealed_texture(tile_index : Vector2i):
-	set_cell(LAYERS["tiles"], tile_index, 0, TILES.get("revealed"))
+	tile_layer.set_cell(tile_index, 0, REVEALED_TILE)
 
 func set_exploded_texture(tile_index : Vector2i):
-	set_cell(LAYERS["tiles"], tile_index, 0, TILES.get("exploded"))
+	tile_layer.set_cell(tile_index, 0, EXPLODED_TILE)
 
 func set_mine_texture(tile_index : Vector2i):
-	set_cell(LAYERS["mines"], tile_index, 0, TILES.get("mine"))
+	mine_layer.set_cell(tile_index, 0, MINE_TILE)
 
 func set_number_texture(tile_index : Vector2i, number : int):
-	set_cell(LAYERS["contents"], tile_index, 0, TILES.get(number))
+	number_layer.set_cell(tile_index, 0, NUMBER_TILES[number])
 
 func set_flag_texture(tile_index : Vector2i):
-	set_cell(LAYERS["flags"], tile_index, 0, TILES.get("flag"))
+	flag_layer.set_cell(tile_index, 0, FLAG_TILE)
 
 func remove_flag_texture(tile_index : Vector2i):
-	erase_cell(LAYERS["flags"], tile_index)
+	flag_layer.erase_cell(tile_index)
 
 func toggle_flag(index : Vector2i):
 	if not game_state.is_valid_tile(index): return
-	game_state.lock()
 	if game_state.is_tile_flagged(index):
 		game_state.set_tile_obscured(index)
 		remove_flag_texture(index)
@@ -381,7 +454,6 @@ func toggle_flag(index : Vector2i):
 		game_state.set_tile_flagged(index)
 		set_flag_texture(index)
 		increment_flag_count()
-	game_state.unlock()
 
 # Returns true if the tile was revealed safely. Otherwise false.
 func reveal_tile(index : Vector2i) -> bool:
@@ -389,7 +461,6 @@ func reveal_tile(index : Vector2i) -> bool:
 	
 	var revealed : bool = false
 	
-	game_state.lock()
 	var tile_state = game_state.tile_get_state(index)
 	
 	if tile_state == GameState.TileState.FLAGGED:
@@ -398,115 +469,71 @@ func reveal_tile(index : Vector2i) -> bool:
 	elif tile_state == GameState.TileState.OBSCURED:
 		game_state.set_tile_revealed(index)
 		if game_state.is_tile_mined(index):
-			on_mine_exploded(index)
-			game_state.unlock()
-			return false
+			if (not game_state.first_tile_revealed) and GlobalSettings.settings.get_first_tile_safe():
+				game_state.change_mine_position(index, game_state.alternative_mine)
+			else:
+				on_mine_exploded(index)
+				return false
 				
 		on_tile_revealed_safely(index)
 		revealed = true
 		
-	game_state.unlock()
 	return revealed
 
 func on_tile_revealed_safely(tile_index : Vector2i):
 	var neighbour_mines : int = game_state.num_neighbour_mines(tile_index)
 	
 	set_revealed(tile_index, neighbour_mines)
+	decrement_safe_tile_count()
 	
 	if(neighbour_mines == 0):
-		reveal_origin = tile_index
-		reveal_process_id = WorkerThreadPool.add_task(reveal_neighbour_cells.bind(tile_index), false, "Reveal neighbouring safe cells.")
-		
-	decrement_safe_tile_count()
-	if game_state.get_num_safe_tiles() == 0:
-		on_win()
+		game_state.reveal_queue = get_neighbours(tile_index)
+		_start_reveal_chain_reaction()
+	else:
+		_check_win()
+
+func _start_reveal_chain_reaction() -> void:
+	_reveal_worker_thread_id = WorkerThreadPool.add_task(_populate_reveal_queue, true, "Chain reveal thread")
 
 func set_revealed(index, neighbour_mine_count):
 	set_revealed_texture(index)
 	set_number_texture(index, neighbour_mine_count)
 
 func show_all_mines():
-	set_layer_enabled(LAYERS["mines"], false)
+	mine_layer.set_enabled(false)
 	for coordinate in game_state.mine_coordinate_list:
 		set_mine_texture(coordinate)
-	set_layer_enabled(LAYERS["mines"], true)
+	mine_layer.set_enabled(true)
 
 func hide_all_mines():
-	set_layer_enabled(LAYERS["mines"], false)
+	mine_layer.set_enabled(false)
 	for coordinate in game_state.mine_coordinate_list:
 		set_obscured_texture(coordinate)
-	set_layer_enabled(LAYERS["mines"], true)
+	mine_layer.set_enabled(true)
 
-func reveal_neighbour_cells(tile : Vector2i):
-	revealing = true
-	
-	call_deferred("emit_signal", "bulk_reveal_started")
-	
-	var batch_queue : Array[Array] = [get_neighbours(tile)]
-	call_deferred("set_physics_process", true)
-	while (batch_queue.size() > 0) and revealing:
-		var neighbours = batch_queue.pop_front()
-		var to_reveal = []
-		to_reveal.resize(8)
-		var reveal_index = 0
-
-		for index in neighbours:
-			if game_state.is_tile_obscured(index):
-				game_state.set_tile_revealed(index)
-				decrement_safe_tile_count()
-				to_reveal[reveal_index] = index
-				reveal_index += 1
-
-		to_reveal = to_reveal.slice(0, reveal_index)
-
-		for index : Vector2i in to_reveal:
-			if reveal_queue.size() >= reveal_batch_size:
-				wait_for_batch_completion()
-			
-			var neighbour_mines : int = game_state.num_neighbour_mines(index)
-			
-			if neighbour_mines == 0:
-				batch_queue.append(get_neighbours(index))
-			
-			reveal_queue_mutex.lock()
-			reveal_queue.append(NumberedCell.new(index, neighbour_mines))
-			reveal_queue_mutex.unlock()
-			
-	if revealing: 
-		wait_for_queue_depletion()
-		revealing = false
-	
-	call_deferred("set_physics_process", false)
-	call_deferred("emit_signal", "bulk_reveal_ended")
-	
-	if game_state.get_num_safe_tiles() == 0:
-		call_deferred("on_win")
-	
-	reveal_process_id = NO_ACTIVE_TASK
-
-func get_neighbours(index : Vector2i) -> Array[Vector2i]:
-	return get_neighbour_coordinates(index).filter(game_state.is_valid_tile.bind())
-
-func get_neighbour_coordinates(coordinate : Vector2i):
+func get_neighbours(coordinate : Vector2i) -> Array[Vector2i]:
 	var neighbours : Array[Vector2i] = []
-	var top_left = coordinate - Vector2i.ONE
-	var bottom_right = coordinate + Vector2i(2, 2)
 	
-	var coord_x : bool
+	var grid_position := game_state.grid_area.position
+	var grid_size := game_state.grid_area.size
+	var x_coords := range(maxi(coordinate.x - 1, grid_position.x), mini(coordinate.x + 2, grid_position.x + grid_size.x))
+	var y_coords := range(maxi(coordinate.y - 1, grid_position.y), mini(coordinate.y + 2, grid_position.y + grid_size.y))
 	
-	neighbours.resize(8)
+	neighbours.resize((x_coords.size() * y_coords.size()) - 1)
+	
+	var center_x : bool
 	var index : int = 0
-	for x : int in range(top_left.x, bottom_right.x):
-		coord_x = (coordinate.x == x)
-		for y : int in range(top_left.y, bottom_right.y):
-			if coord_x and (coordinate.y == y): continue
+	for x : int in x_coords:
+		center_x = (coordinate.x == x)
+		for y : int in y_coords:
+			if center_x and (coordinate.y == y): continue
 			neighbours[index] = Vector2i(x, y)
 			index += 1
 	
 	return neighbours
 
 func is_revealing() -> bool:
-	return revealing
+	return _revealing
 
 func on_flag_placed():
 	increment_flag_count()
@@ -537,28 +564,34 @@ func on_safe_tile_count_changed(num_safe : int):
 	call_deferred_thread_group("emit_signal", "safe_tile_count_changed", num_safe)
 
 func decrement_safe_tile_count():
-	game_state.set_num_safe_tiles(game_state.get_num_safe_tiles() - 1)
+	game_state.num_safe_tiles -= 1
 
 func _on_click_timer_timeout() -> void:
 	input_is_click = false
 	set_tile_unpressed(pressed_tile)
 
+
+func _check_win():
+	if game_state.get_num_safe_tiles() == 0:
+			on_win()
+
+
 func on_win():
 	game_over = true
-	call_deferred("emit_signal", "win")
+	win.emit()
 	
+	mine_layer.fade_in_mines()
 	show_all_mines()
-	animation_player.play("fade_in_mines")
 
 
 func _on_bulk_reveal_started() -> void:
-	animation_player.play("fade_out_contents")
+	number_layer.fade_out_numbers()
 
 func _on_bulk_reveal_ended() -> void:
-	if animation_player.is_playing() and animation_player.current_animation_position == 0:
-		animation_player.stop()
+	if number_layer.animation_player.is_playing() and is_equal_approx(number_layer.animation_player.current_animation_position, 0):
+		number_layer.stop_animation()
 	else:
-		animation_player.play_backwards("fade_out_contents")
+		number_layer.fade_in_numbers()
 
 class NumberedCell:
 	var index : Vector2i

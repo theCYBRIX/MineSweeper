@@ -2,8 +2,10 @@ extends Control
 
 signal setting_changed
 
-@onready var rows_input: LabeledSpinBox = $SettingsContainer/RowsInput
-@onready var columns_input: LabeledSpinBox = $SettingsContainer/ColumnsInput
+@onready var rows_input: SpinBox = $SettingsContainer/RowsInput/SpinBox
+@onready var rows_label: Label = $SettingsContainer/RowsInput/Label
+@onready var columns_input: SpinBox = $SettingsContainer/ColumnsInput/SpinBox
+@onready var columns_setting: HBoxContainer = $SettingsContainer/ColumnsInput
 @onready var mines_input: HSlider = $SettingsContainer/MineSetting/MinesSlider
 @onready var mines_percent_label : Label = $SettingsContainer/MineSetting/MinesPercentLabel
 @onready var square_grid_option: CheckButton = $SettingsContainer/SquareGridOption
@@ -55,15 +57,15 @@ func _on_square_grid_option_toggled(toggled_on : bool):
 	square_grid_enabled = toggled_on
 	
 	if toggled_on:
-		columns_input.hide()
-		rows_input.set_text("Sides")
-		rows_input.spin_box.min_value = 2
-		columns_input.spin_box.min_value = 2
+		columns_setting.hide()
+		rows_label.set_text("Sides")
+		rows_input.min_value = 2
+		columns_input.min_value = 2
 	else:
-		columns_input.show()
-		rows_input.set_text("Rows")
-		rows_input.spin_box.min_value = 1
-		columns_input.spin_box.min_value = 1
+		columns_setting.show()
+		rows_label.set_text("Rows")
+		rows_input.min_value = 1
+		columns_input.min_value = 1
 		
 	rows_is_one = false
 	columns_is_one = false
@@ -72,10 +74,10 @@ func _on_square_grid_option_toggled(toggled_on : bool):
 
 func _on_rows_input_value_changed(value):
 	if value == 1:
-		columns_input.spin_box.min_value = 2
+		columns_input.min_value = 2
 		rows_is_one = true
 	elif rows_is_one:
-		columns_input.spin_box.min_value = 1
+		columns_input.min_value = 1
 		rows_is_one = false
 		
 	if square_grid_enabled:
@@ -85,10 +87,10 @@ func _on_rows_input_value_changed(value):
 
 func _on_columns_input_value_changed(value: int) -> void:
 	if value == 1:
-		rows_input.spin_box.min_value = 2
+		rows_input.min_value = 2
 		columns_is_one = true
 	elif columns_is_one:
-		rows_input.spin_box.min_value = 1
+		rows_input.min_value = 1
 		columns_is_one = false
 		
 	setting_changed.emit()

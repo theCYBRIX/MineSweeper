@@ -22,7 +22,6 @@ func set_value(new_value : int):
 	value = new_value
 	if spin_box and spin_box.value != new_value:
 		spin_box.set_value(new_value)
-	value_changed.emit(new_value)
 
 func get_value() -> int:
 	return int(spin_box.get_value()) if spin_box else value
