@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b040ld4j6hkmi"]
+[gd_scene load_steps=10 format=3 uid="uid://b040ld4j6hkmi"]
 
 [ext_resource type="PackedScene" uid="uid://dd2411n1uv8q" path="res://Scenes/overlay_screen.tscn" id="1_cae0i"]
 [ext_resource type="SystemFont" uid="uid://bba66hc4ekaai" path="res://Fonts/ARIAL.tres" id="1_ib5ea"]
@@ -103,6 +103,8 @@ _data = {
 "maximize": SubResource("Animation_f7u7b")
 }
 
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_pm3v8"]
+
 [node name="WinScreen" instance=ExtResource("1_cae0i")]
 script = ExtResource("2_mytnc")
 initial_summary_tween_time = 1.5
@@ -113,7 +115,6 @@ timer_label_target_rect = Rect2(0, 0, 0, 0)
 timer_target_font_size = 0
 
 [node name="Background" parent="." index="0"]
-self_modulate = Color(1, 1, 1, 0.401569)
 color = Color(0.509804, 1, 0.329412, 1)
 
 [node name="MineTexture" type="TextureRect" parent="." index="1"]
@@ -125,7 +126,7 @@ anchor_right = 0.5875
 anchor_bottom = 0.557407
 offset_left = 6.99969
 offset_top = 0.000335693
-offset_right = 6.99976
+offset_right = 6.99963
 offset_bottom = 0.000427246
 texture = ExtResource("3_oxh2i")
 expand_mode = 1
@@ -148,25 +149,26 @@ grow_vertical = 2
 theme = SubResource("Theme_cjy0n")
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 74
+theme_override_font_sizes/font_size = 0
 text = "40"
 vertical_alignment = 1
 
 [node name="FinalTime" parent="." index="2" instance=ExtResource("5_had60")]
-layout_mode = 0
-anchor_left = 0.359896
-anchor_top = 0.239815
-anchor_right = 0.622396
-anchor_bottom = 0.373148
-offset_left = -0.000305176
-offset_top = -0.000183105
-offset_right = -0.000244141
-offset_bottom = 0.000152588
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.313021
+anchor_top = 0.213889
+anchor_right = 0.669271
+anchor_bottom = 0.399074
+offset_right = 0.0
+offset_bottom = 0.0
 theme_override_colors/font_color = Color(0, 1, 0.160784, 1)
-theme_override_font_sizes/font_size = 86
+theme_override_font_sizes/font_size = 102
+text = "11:00:00"
 metadata/_edit_use_anchors_ = true
 
 [node name="GridDimensions" type="Label" parent="." index="3"]
+self_modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.349479
@@ -185,7 +187,8 @@ metadata/_edit_use_anchors_ = true
 
 [node name="ForegroundAnimator" type="AnimationPlayer" parent="." index="4"]
 libraries = {
-"": SubResource("AnimationLibrary_e41y1")
+"": SubResource("AnimationLibrary_e41y1"),
+"RESET": SubResource("AnimationLibrary_pm3v8")
 }
 
 [node name="Buttons" parent="." index="5"]

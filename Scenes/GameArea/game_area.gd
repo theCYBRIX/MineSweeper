@@ -1,5 +1,7 @@
 extends Control
 
+const TILE_MAP : PackedScene = preload("res://Scenes/GameArea/tile_map.tscn")
+
 signal preparation_finished
 
 @onready var mine_symbol: TextureRect = $HSplitContainer/Panel/MineSymbol
@@ -7,11 +9,11 @@ signal preparation_finished
 
 @onready var flag_symbol: TextureRect = $HSplitContainer/Panel/FlagSymbol
 @onready var flag_label = $HSplitContainer/Panel/FlagSymbol/FlagLabel
+@onready var camera: Camera2D = $HSplitContainer/TileMapArea/SubViewport/Camera
 
 
 @onready var tile_map_viewport = $HSplitContainer/TileMapArea/SubViewport
 @onready var tile_map_area: SubViewportContainer = $HSplitContainer/TileMapArea
-@onready var tile_map = $HSplitContainer/TileMapArea/SubViewport/TileMap
 
 @onready var timer_label : Label = $HSplitContainer/Panel/TimerLabel
 @onready var timer : Timer = $HSplitContainer/Panel/TimerLabel/Timer
@@ -44,28 +46,46 @@ var new_game : bool = false
 
 var loading_cancelled : bool = false
 
+var _tile_map : Node2D
+var _worker_task_id : int
+
 func _ready():
-	tile_map.hide()
-	
 	LoadingScreen.cancel_requested.connect(_on_loading_screen_cancel_requested)
 	await prepare_asynch()
 	LoadingScreen.cancel_requested.disconnect(_on_loading_screen_cancel_requested)
 	
 	if loading_cancelled: return
 	
-	tile_map.show()
+	camera.tile_map = _tile_map
+	#tile_map_viewport.call_deferred("add_child", _tile_map, false, Node.INTERNAL_MODE_FRONT)
+	
+	set_process_input(true)
+	
 	refresh_ui()
 	SceneLoader.hide_loading_screen()
 
 
 func prepare_asynch() -> Signal:
-	WorkerThreadPool.add_task(prepare)
+	#_worker_task_id = WorkerThreadPool.add_task(prepare)
+	await prepare()
 	return preparation_finished
 
 
 func prepare() -> void:
+	initializing = true
 	var game_state : GameState = GlobalSettings.get_initial_game_state()
-	tile_map.prepare_grid(game_state)
+	_tile_map = TILE_MAP.instantiate()
+	tile_map_viewport.add_child(_tile_map, false, Node.INTERNAL_MODE_FRONT)
+	_tile_map.set_game_state(game_state)
+	await _tile_map.update_full_map()
+	_tile_map.bulk_reveal_ended.connect(_on_tile_map_bulk_reveal_ended)
+	_tile_map.bulk_reveal_started.connect(_on_tile_map_bulk_reveal_started)
+	_tile_map.flag_count_changed.connect(_on_tile_map_flag_count_changed)
+	_tile_map.game_started.connect(_on_tile_map_game_started)
+	_tile_map.lose.connect(_on_tile_map_lose)
+	_tile_map.safe_tile_count_changed.connect(_on_tile_map_safe_tile_count_changed)
+	_tile_map.win.connect(_on_tile_map_win)
+	#_tile_map.propagate_call("_notification", [NOTIFICATION_DRAW])
 	initializing = false
 	call_deferred("emit_signal", "preparation_finished")
 
@@ -73,15 +93,15 @@ func refresh_ui():
 	recenter_tile_map()
 	timer_label.add_theme_color_override("font_color", timer_halted_color)
 	update_timer_text()
-	flag_label.set_text(str(tile_map.get_flag_count()))
-	mine_label.set_text(str(tile_map.game_state.num_mines))
-	if tile_map.game_state.first_tile_revealed:
+	flag_label.set_text(str(_tile_map.get_flag_count()))
+	mine_label.set_text(str(_tile_map.game_state.num_mines))
+	if _tile_map.game_state.first_tile_revealed:
 		ready_screen.show()
 	else:
 		tile_map_area.grab_focus()
 
 func _shortcut_input(event):
-	if (not paused) and not tile_map.game_over and not initializing:
+	if (not paused) and (_tile_map and not _tile_map.game_over) and not initializing:
 		if event.is_action_pressed("ui_cancel"):
 			pause()
 
@@ -89,7 +109,7 @@ func _shortcut_input(event):
 func _notification(what: int) -> void:
 	match(what):
 		NOTIFICATION_WM_CLOSE_REQUEST | NOTIFICATION_WM_GO_BACK_REQUEST: #Back button pressed on Android or Escape pressed on desktop
-			if tile_map.game_over: return
+			if _tile_map.game_over: return
 			if not paused: pause()
 		NOTIFICATION_APPLICATION_PAUSED: #application minimized on Android
 			if game_ongoing and not paused:
@@ -98,20 +118,21 @@ func _notification(what: int) -> void:
 
 
 func recenter_tile_map():
-	tile_map_camera.center_on_area(Rect2(tile_map.position, tile_map.get_size()))
+	tile_map_camera.center_on_area(Rect2(_tile_map.position, _tile_map.get_size()))
 
 func _on_tile_map_flag_count_changed(num_flags : int):
 	flag_label.set_text(str(num_flags))
-	flag_animation.stop()
-	flag_animation.play("press_indicator")
+	if GlobalSettings.settings.flag_feedback:
+		flag_animation.stop()
+		flag_animation.play("press_indicator")
 	SoundManager.flag_toggled()
 
 func _on_timer_timeout():
-	tile_map.game_state.time_elapsed += 1
+	_tile_map.game_state.time_elapsed += 1
 	update_timer_text()
 
 func update_timer_text():
-	var elapsed_time : int = int(tile_map.game_state.time_elapsed)
+	var elapsed_time : int = int(_tile_map.game_state.time_elapsed)
 	var minutes : int  = elapsed_time / 60
 	var hours : int = minutes / 60
 	minutes = minutes % 60
@@ -160,7 +181,7 @@ func _on_tile_map_lose():
 
 
 func _on_lose_screen_screen_obscured():
-	tile_map.show_all_mines()
+	_tile_map.show_all_mines()
 
 
 func _on_lose_screen_retry():
@@ -183,17 +204,18 @@ func _on_pause_screen_resume():
 
 func _on_pause_screen_quit():
 	if game_ongoing:
-		tile_map.game_state.time_elapsed += (timer.wait_time - timer.time_left)
-		GlobalSettings.save_game_state(tile_map.game_state)
+		_tile_map.stop()
+		_tile_map.game_state.time_elapsed += (timer.wait_time - timer.time_left)
+		GlobalSettings.save_game_state(_tile_map.game_state)
 	return_to_main_menu()
 
 
 func _on_tile_map_game_started():
 	tween_timer_color(timer_active_color, 0.5)
-	if not tile_map.game_over:
+	if not _tile_map.game_over:
 		timer.start()
 		game_ongoing = true
-		if tile_map.is_revealing():
+		if _tile_map.is_revealing():
 			wait_timer()
 
 func pause():
@@ -209,7 +231,7 @@ func resume():
 	await pause_screen.fade_out()
 	pause_screen.hide()
 	if game_ongoing:
-		if tile_map.is_revealing():
+		if _tile_map.is_revealing():
 			wait_timer()
 		else:
 			resume_timer()
@@ -250,7 +272,10 @@ func override_timer_color(color : Color):
 func _on_ready_screen_start() -> void:
 	await ready_screen.fade_out()
 	ready_screen.call_deferred("hide")
-	resume_timer()
+	if GlobalSettings.game_state.reveal_queue.is_empty():
+		resume_timer()
+	else:
+		_tile_map.resume()
 
 
 func set_child_buttons_disabled(control : Control, blocking : bool = true):
@@ -270,9 +295,12 @@ func _on_focus_entered() -> void:
 
 
 func _on_tile_map_safe_tile_count_changed(_num_safe: int) -> void:
-	if not tile_map.revealing: SoundManager.tile_revealed()
+	if not _tile_map._revealing: SoundManager.tile_revealed()
 
 
 func _on_loading_screen_cancel_requested():
-	loading_cancelled = true
+	if initializing:
+		loading_cancelled = true
+		_tile_map.queue_free()
+		await get_tree().process_frame
 	return_to_main_menu()

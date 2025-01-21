@@ -2,12 +2,13 @@ extends Control
 
 signal setting_changed
 
-@onready var window_mode_button : OptionButton = $SettingsContainer/VBoxContainer/WindowSettings/WindowMode
-@onready var speed_slider: HSlider = $SettingsContainer/SpeedSetting/SpeedSlider
-@onready var speed_percent_label: Label = $SettingsContainer/SpeedSetting/SpeedPercentLabel
-@onready var window_settings: VBoxContainer = $SettingsContainer/VBoxContainer
-
-var speed_slider_dragging : bool = false
+@onready var animation_toggle: CheckButton = $SettingsContainer/AnimationSetting/AnimationToggle
+@onready var animation_spin_box: SpinBox = $SettingsContainer/AnimationSetting/DurationSetting/SpinBox
+@onready var window_mode_button : OptionButton = $SettingsContainer/WindowSettings/WindowMode
+@onready var window_settings: HBoxContainer = $SettingsContainer/WindowSettings
+@onready var duration_setting: HBoxContainer = $SettingsContainer/AnimationSetting/DurationSetting
+@onready var h_separator: HSeparator = $SettingsContainer/HSeparator
+@onready var flag_feedback_toggle: CheckButton = $SettingsContainer/FlagFeedbackToggle
 
 var window_mode = {
 	DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN : 0,
@@ -20,26 +21,33 @@ func _ready():
 	window_mode_button.set_item_metadata(window_mode_button.get_item_index(1), DisplayServer.WINDOW_MODE_FULLSCREEN)
 	window_mode_button.set_item_metadata(window_mode_button.get_item_index(2), DisplayServer.WINDOW_MODE_WINDOWED)
 	
-	if GlobalSettings.os_is_mobile():
+	if not GlobalSettings.os_is_desktop():
 		window_settings.hide()
+		h_separator.hide()
 
 func apply_settings():
-	var speed_percentage : float = speed_slider.get_value()
+	var animation_duration : float = animation_spin_box.value if animation_toggle.button_pressed else 0
 	var selected_window_mode = window_mode_button.get_selected_metadata()
+	var flag_feedback := flag_feedback_toggle.button_pressed
 	
 	GlobalSettings.settings.set_window_mode(selected_window_mode)
-	GlobalSettings.settings.set_processing_speed(speed_percentage / 100.0)
+	GlobalSettings.settings.set_animation_duration(animation_duration)
+	GlobalSettings.settings.set_flag_feedback(flag_feedback)
 
 
 func get_as_dictionary() -> Dictionary:
 	return {
-		"window_mode" = window_mode_button.get_selected_metadata(),
-		"speed_percentage" = speed_slider.get_value()
+		"window_mode" : window_mode_button.get_selected_metadata(),
+		"animation_duration" : animation_spin_box.value if animation_toggle.button_pressed else 0,
+		"flag_feedback" : flag_feedback_toggle.button_pressed
 	}
 
 func refresh():
-	select_current_window_mode()
-	speed_slider.set_value(GlobalSettings.settings.get_processing_speed() * 100.0)
+	if GlobalSettings.os_is_desktop():
+		select_current_window_mode()
+	animation_spin_box.set_value(GlobalSettings.settings.get_animation_duration())
+	animation_toggle.button_pressed = GlobalSettings.settings.animation_duration > 0
+	flag_feedback_toggle.button_pressed = GlobalSettings.settings.flag_feedback
 
 func select_current_window_mode():
 	window_mode_button.select(window_mode_button.get_item_index(window_mode[GlobalSettings.generalize_window_mode(GlobalSettings.settings.get_window_mode())]))
@@ -48,15 +56,16 @@ func select_current_window_mode():
 func _on_window_mode_item_selected(_index: int) -> void:
 	setting_changed.emit()
 
-func _on_speed_slider_value_changed(value):
-	speed_percent_label.set_text("%2.1f%%"%value)
-	if not speed_slider_dragging: setting_changed.emit()
 
-
-func _on_speed_slider_drag_started() -> void:
-	speed_slider_dragging = true
+func _on_duration_spin_box_value_changed(value: float) -> void:
 	setting_changed.emit()
 
-func _on_speed_slider_drag_ended(value_changed: bool) -> void:
-	speed_slider_dragging = false
-	if value_changed: setting_changed.emit()
+
+func _on_animation_toggle_toggled(toggled_on: bool) -> void:
+	if is_node_ready():
+		duration_setting.visible = toggled_on
+	setting_changed.emit()
+
+
+func _on_flag_feedback_toggle_toggled(toggled_on: bool) -> void:
+	setting_changed.emit()

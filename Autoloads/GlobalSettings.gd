@@ -3,7 +3,7 @@ extends Node
 signal settings_changed
 
 const settings_path : String = "user://settings.tres"
-const save_game_path : String = "user://game_state.tres" 
+const save_game_path : String = "user://game_state.tres"
 
 var settings : GameSettings
 var game_state : GameState
@@ -24,6 +24,8 @@ var use_saved_state : bool = false
 @export_range(-50, 0) var min_volume = -25
 
 const DESKTOP_PLATFORMS : Array[String] = ["Windows", "macOS", "Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD"]
+const MOBILE_PLATFORMS : Array[String] = ["Android", "iOS"]
+const WEB_PLATFORM := "Web"
 
 
 func _notification(what: int) -> void:
@@ -66,7 +68,13 @@ func set_settings(new_settings : GameSettings) -> void:
 	settings_changed.emit()
 
 func os_is_mobile() -> float:
-	return not (OS.get_name() in DESKTOP_PLATFORMS)
+	return OS.get_name() in MOBILE_PLATFORMS
+
+func os_is_desktop() -> float:
+	return OS.get_name() in DESKTOP_PLATFORMS
+
+func os_is_web() -> float:
+	return OS.get_name() == WEB_PLATFORM
 
 func get_mines() -> int:
 	var num_cells = settings.get_grid_rect().get_area()

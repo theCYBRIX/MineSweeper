@@ -1,96 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://bpk5rurdpmrxp"]
+[gd_scene load_steps=2 format=3 uid="uid://bpk5rurdpmrxp"]
 
-[ext_resource type="TileSet" uid="uid://bxf7xund3funw" path="res://Resources/tile_map.tres" id="1_lyodk"]
 [ext_resource type="Script" path="res://Scenes/GameArea/tile_map.gd" id="2_kdw6o"]
 
-[sub_resource type="Animation" id="Animation_6kp31"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:layer_2/modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 1)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:layer_1/modulate")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_60ryk"]
-resource_name = "fade_in_mines"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:layer_2/modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_rnius"]
-resource_name = "fade_out_contents"
-length = 0.5
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:layer_1/modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(1, 4.75683),
-"update": 0,
-"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_8oylt"]
-_data = {
-"RESET": SubResource("Animation_6kp31"),
-"fade_in_mines": SubResource("Animation_60ryk"),
-"fade_out_contents": SubResource("Animation_rnius")
-}
-
-[node name="TileMap" type="TileMap"]
-tile_set = ExtResource("1_lyodk")
-format = 2
-layer_0/name = "Tiles"
-layer_0/navigation_enabled = false
-layer_1/name = "Contents"
-layer_1/navigation_enabled = false
-layer_1/tile_data = PackedInt32Array()
-layer_2/name = "Mines"
-layer_2/navigation_enabled = false
-layer_2/tile_data = PackedInt32Array()
-layer_3/name = "Flags"
-layer_3/navigation_enabled = false
-layer_3/tile_data = PackedInt32Array()
+[node name="TileMap" type="Node2D"]
 script = ExtResource("2_kdw6o")
 
 [node name="ClickTimer" type="Timer" parent="."]
 wait_time = 0.25
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-"": SubResource("AnimationLibrary_8oylt")
-}
 
 [connection signal="bulk_reveal_ended" from="." to="." method="_on_bulk_reveal_ended"]
 [connection signal="bulk_reveal_started" from="." to="." method="_on_bulk_reveal_started"]

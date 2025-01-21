@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://sfu1bae1py40"]
+[gd_scene load_steps=3 format=3 uid="uid://sfu1bae1py40"]
 
 [ext_resource type="PackedScene" uid="uid://bme8v4sro26wh" path="res://Scenes/Settings/SettingsCategory.tscn" id="1_e6kyq"]
 [ext_resource type="Script" path="res://Scenes/Settings/game_settings.gd" id="1_l7s4g"]
-[ext_resource type="PackedScene" uid="uid://xoahe3a72mdh" path="res://Scenes/CustomUI/labeled_spin_box.tscn" id="3_6d6b1"]
 
 [node name="GameSettings" instance=ExtResource("1_e6kyq")]
 script = ExtResource("1_l7s4g")
@@ -10,33 +9,43 @@ script = ExtResource("1_l7s4g")
 [node name="CategoryLabel" parent="." index="0"]
 text = "Grid properties"
 
-[node name="RowsInput" parent="SettingsContainer" index="0" instance=ExtResource("3_6d6b1")]
+[node name="RowsInput" type="HBoxContainer" parent="SettingsContainer" index="0"]
 layout_mode = 2
-text = "Rows"
-value = 20
-metadata/_edit_pinned_properties_ = [&"text", &"value"]
 
-[node name="Label" parent="SettingsContainer/RowsInput" index="0"]
-text = "Rows"
+[node name="Label" type="Label" parent="SettingsContainer/RowsInput" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Rows:"
+vertical_alignment = 1
 
-[node name="SpinBox" parent="SettingsContainer/RowsInput" index="1"]
+[node name="SpinBox" type="SpinBox" parent="SettingsContainer/RowsInput" index="1"]
+layout_mode = 2
+size_flags_horizontal = 8
 min_value = 1.0
 max_value = 500.0
 value = 20.0
+rounded = true
+select_all_on_focus = true
 
-[node name="ColumnsInput" parent="SettingsContainer" index="1" instance=ExtResource("3_6d6b1")]
+[node name="ColumnsInput" type="HBoxContainer" parent="SettingsContainer" index="1"]
 layout_mode = 2
-text = "Columns"
-value = 20
-metadata/_edit_pinned_properties_ = [&"text", &"value"]
 
-[node name="Label" parent="SettingsContainer/ColumnsInput" index="0"]
-text = "Columns"
+[node name="Label" type="Label" parent="SettingsContainer/ColumnsInput" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Columns:"
+vertical_alignment = 1
 
-[node name="SpinBox" parent="SettingsContainer/ColumnsInput" index="1"]
+[node name="SpinBox" type="SpinBox" parent="SettingsContainer/ColumnsInput" index="1"]
+layout_mode = 2
+size_flags_horizontal = 8
 min_value = 1.0
 max_value = 500.0
 value = 20.0
+rounded = true
+select_all_on_focus = true
 
 [node name="SquareGridOption" type="CheckButton" parent="SettingsContainer" index="2"]
 layout_mode = 2
@@ -67,13 +76,10 @@ tooltip_text = "Guarantees the first tile clicked to be safe."
 button_pressed = true
 text = "First Tile Safe"
 
-[connection signal="value_changed" from="SettingsContainer/RowsInput" to="." method="_on_rows_input_value_changed"]
-[connection signal="value_changed" from="SettingsContainer/ColumnsInput" to="." method="_on_columns_input_value_changed"]
+[connection signal="value_changed" from="SettingsContainer/RowsInput/SpinBox" to="." method="_on_rows_input_value_changed"]
+[connection signal="value_changed" from="SettingsContainer/ColumnsInput/SpinBox" to="." method="_on_columns_input_value_changed"]
 [connection signal="toggled" from="SettingsContainer/SquareGridOption" to="." method="_on_square_grid_option_toggled"]
 [connection signal="drag_ended" from="SettingsContainer/MineSetting/MinesSlider" to="." method="_on_mines_slider_drag_ended"]
 [connection signal="drag_started" from="SettingsContainer/MineSetting/MinesSlider" to="." method="_on_mines_slider_drag_started"]
 [connection signal="value_changed" from="SettingsContainer/MineSetting/MinesSlider" to="." method="_on_mines_slider_value_changed"]
 [connection signal="toggled" from="SettingsContainer/FirstSafeOption" to="." method="_on_first_safe_option_toggled"]
-
-[editable path="SettingsContainer/RowsInput"]
-[editable path="SettingsContainer/ColumnsInput"]

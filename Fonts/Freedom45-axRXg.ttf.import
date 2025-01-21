@@ -15,6 +15,7 @@ dest_files=["res://.godot/imported/Freedom45-axRXg.ttf-ac83f93b92cb4cc715a9671d7
 Rendering=null
 antialiasing=1
 generate_mipmaps=false
+disable_embedded_bitmaps=true
 multichannel_signed_distance_field=false
 msdf_pixel_range=8
 msdf_size=48

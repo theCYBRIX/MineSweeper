@@ -1,6 +1,8 @@
 class_name GameSettings
 extends Resource
 
+const MAX_ANIMATION_DURATION := 60
+
 @export var square_grid : bool = false :
 	set = set_square_grid,
 	get = get_square_grid
@@ -13,9 +15,13 @@ extends Resource
 	set = set_mine_fraction,
 	get = get_mine_fraction
 
-@export var processing_speed : float = 0.05 :
-	set = set_processing_speed,
-	get = get_processing_speed
+@export var animation_duration : float = 0.5 :
+	set = set_animation_duration,
+	get = get_animation_duration
+
+@export var flag_feedback : bool = true :
+	set = set_flag_feedback,
+	get = get_flag_feedback
 
 @export var sound_enabled : bool = true :
 	set = set_sound_enabled,
@@ -49,7 +55,7 @@ func equals(other : GameSettings) -> bool:
 	return (square_grid == other.square_grid and \
 			grid_size == other.grid_size and \
 			mine_fraction == other.mine_fraction and \
-			processing_speed == other.processing_speed and \
+			animation_duration == other.animation_duration and \
 			sound_enabled == other.sound_enabled and \
 			sound_fx_enabled == other.sound_fx_enabled and \
 			ui_sound_enabled == other.ui_sound_enabled and \
@@ -102,13 +108,13 @@ func set_mine_fraction(fraction : float) -> void:
 	mine_fraction = fraction
 	emit_changed()
 
-func get_processing_speed() -> float:
-	return processing_speed
+func get_animation_duration() -> float:
+	return animation_duration
 
-func set_processing_speed(fraction : float) -> void:
-	fraction = clampf(fraction, 0, 1)
-	if processing_speed == fraction: return
-	processing_speed = fraction
+func set_animation_duration(duration : float) -> void:
+	duration = clampf(duration, 0, MAX_ANIMATION_DURATION)
+	if animation_duration == duration: return
+	animation_duration = duration
 	emit_changed()
 
 func get_sound_enabled() -> bool:
@@ -156,7 +162,7 @@ func get_fx_enabled() -> bool:
 func get_window_mode() -> DisplayServer.WindowMode:
 	return window_mode as DisplayServer.WindowMode
 
-func set_window_mode(mode : DisplayServer.WindowMode):
+func set_window_mode(mode : DisplayServer.WindowMode) -> void:
 	if window_mode == mode: return
 	window_mode = mode
 	emit_changed()
@@ -164,7 +170,15 @@ func set_window_mode(mode : DisplayServer.WindowMode):
 func get_first_tile_safe() -> bool:
 	return first_tile_safe
 
-func set_first_tile_safe(enabled : bool = true):
+func set_first_tile_safe(enabled : bool = true) -> void:
 	if first_tile_safe == enabled: return
 	first_tile_safe = enabled
 	emit_changed()
+
+func set_flag_feedback(enabled : bool) -> void:
+	if flag_feedback == enabled: return
+	flag_feedback = enabled
+	emit_changed()
+
+func get_flag_feedback() -> bool:
+	return flag_feedback

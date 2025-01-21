@@ -26,12 +26,12 @@ var mine_map : Array[Array]
 @export var alternative_mine : Vector2i
 @export var mine_coordinate_list : Array[Vector2i]
 
-var count_mutex : Mutex = Mutex.new()
-var state_map_mutex : Mutex = Mutex.new()
-
 @export var first_tile_revealed : bool = false
 
 @export var time_elapsed : float = 0
+
+@export var reveal_queue : Array[Vector2i] = [] :
+	set = set_reveal_queue
 
 var initialized = false
 
@@ -93,9 +93,6 @@ func is_tile_revealed(index : Vector2i) -> bool:
 	return tile_has_state(index, TileState.REVEALED)
 
 func is_tile_mined(index : Vector2i) -> bool:
-	if mine_map[index.x][index.y]:
-		if (not first_tile_revealed) and GlobalSettings.settings.get_first_tile_safe():
-			change_mine_position(index, alternative_mine)
 	return mine_map[index.x][index.y]
 
 func set_tile_obscured(index : Vector2i) -> bool:
@@ -108,30 +105,24 @@ func set_tile_revealed(index : Vector2i) -> bool:
 	return tile_set_state(index, TileState.REVEALED)
 
 func tile_has_state(tile : Vector2i, state : TileState) -> bool:
-	state_map_mutex.lock()
-	var has_state : bool = (state_map[tile.x][tile.y] == state)
-	state_map_mutex.unlock()
-	return has_state
+	return (state_map[tile.x][tile.y] == state)
 
 func tile_get_state(tile : Vector2i) -> TileState:
-	state_map_mutex.lock()
-	var state : TileState = state_map[tile.x][tile.y]
-	state_map_mutex.unlock()
-	return state
+	return state_map[tile.x][tile.y]
+
+func tile_get_state_indexed(x : int, y : int) -> TileState:
+	return state_map[x][y]
 
 func tile_set_state(tile : Vector2i, state : TileState) -> bool:
-	var state_changed : bool = false
-	state_map_mutex.lock()
 	if state_map[tile.x][tile.y] != state:
 		state_map[tile.x][tile.y] = state
-		state_changed = true
-	state_map_mutex.unlock()
-	return state_changed
+		return true
+	return false
 
 func num_neighbour_mines(tile : Vector2i) -> int:
 	var neighbour_mines : int = 0
-	for column in range(maxi(tile.x - 1, 0), mini(tile.x + 2, get_num_columns())):
-		for row in range(maxi(tile.y - 1, 0), mini(tile.y + 2, get_num_rows())):
+	for column in range(maxi(tile.x - 1, grid_area.position.x), mini(tile.x + 2, grid_area.size.x)):
+		for row in range(maxi(tile.y - 1, grid_area.position.y), mini(tile.y + 2, grid_area.size.y)):
 			if mine_map[column][row]: neighbour_mines += 1
 	return neighbour_mines
 
@@ -159,28 +150,18 @@ func is_valid_tile(index : Vector2i) -> bool:
 	return grid_area.has_point(index)
 
 func set_num_flags(flags : int) -> void:
-	count_mutex.lock()
 	num_flags = flags
 	flag_count_changed.emit(num_flags)
-	count_mutex.unlock()
 
 func get_num_flags() -> int:
-	count_mutex.lock()
-	var num : int = num_flags
-	count_mutex.unlock()
-	return num
+	return num_flags
 
 func get_num_safe_tiles() -> int:
-	count_mutex.lock()
-	var num : int = num_safe_tiles
-	count_mutex.unlock()
-	return num
+	return num_safe_tiles
 
 func set_num_safe_tiles(safe : int) -> void:
-	count_mutex.lock()
 	num_safe_tiles = safe
 	safe_tile_count_changed.emit(safe)
-	count_mutex.unlock()
 
 func get_num_columns() -> int:
 	return grid_area.size.x
@@ -188,11 +169,8 @@ func get_num_columns() -> int:
 func get_num_rows() -> int:
 	return grid_area.size.y
 
-func lock():
-	state_map_mutex.lock()
-	
-func unlock():
-	state_map_mutex.unlock()
+func set_reveal_queue(queue : Array[Vector2i]) -> void:
+	reveal_queue = queue if queue else [] 
 
 func prepare():
 	if initialized:

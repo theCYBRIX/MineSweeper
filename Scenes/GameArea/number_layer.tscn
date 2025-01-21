@@ -1,0 +1,53 @@
+[gd_scene load_steps=5 format=3 uid="uid://bfsm8bdmrea6e"]
+
+[ext_resource type="Script" path="res://Scenes/GameArea/number_layer.gd" id="1_4yn8e"]
+
+[sub_resource type="Animation" id="Animation_c3l7p"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_n873t"]
+resource_name = "fade_out_numbers"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_abi0v"]
+_data = {
+"RESET": SubResource("Animation_c3l7p"),
+"fade_out_numbers": SubResource("Animation_n873t")
+}
+
+[node name="TileNumberLayer" type="TileMapLayer"]
+light_mask = 0
+collision_enabled = false
+collision_visibility_mode = 2
+navigation_enabled = false
+navigation_visibility_mode = 2
+script = ExtResource("1_4yn8e")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_abi0v")
+}

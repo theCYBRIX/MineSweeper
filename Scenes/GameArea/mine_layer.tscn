@@ -1,0 +1,51 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7gwawhd1uyuv"]
+
+[ext_resource type="Script" path="res://Scenes/GameArea/mine_layer.gd" id="1_coq6p"]
+
+[sub_resource type="Animation" id="Animation_a155o"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_lwdbf"]
+resource_name = "fade_in_mines"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_opo0o"]
+_data = {
+"RESET": SubResource("Animation_a155o"),
+"fade_in_mines": SubResource("Animation_lwdbf")
+}
+
+[node name="MineLayer" type="TileMapLayer"]
+collision_enabled = false
+collision_visibility_mode = 2
+navigation_enabled = false
+navigation_visibility_mode = 2
+script = ExtResource("1_coq6p")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_opo0o")
+}

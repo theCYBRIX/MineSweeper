@@ -45,22 +45,27 @@ anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 0.872727
 size_flags_vertical = 3
+current_tab = 0
 metadata/_edit_use_anchors_ = true
 
 [node name="Game" parent="UserInterface/TabContainer" instance=ExtResource("2_s65sw")]
 layout_mode = 2
+metadata/_tab_index = 0
 
 [node name="Graphics" parent="UserInterface/TabContainer" instance=ExtResource("2_xcsw7")]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 1
 
 [node name="Sound" parent="UserInterface/TabContainer" instance=ExtResource("4_vhf3k")]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 2
 
 [node name="Defaults" parent="UserInterface/TabContainer" instance=ExtResource("5_5ggdh")]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 3
 
 [node name="ApplyButton" type="Button" parent="UserInterface"]
 layout_mode = 2
