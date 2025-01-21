@@ -245,7 +245,9 @@ func _on_tile_map_bulk_reveal_ended():
 		resume_timer()
 
 func resume_timer():
-	timer.set_paused(false)
+	if timer.is_stopped():
+		timer.start()
+	timer.paused = false
 	tween_timer_color(timer_active_color, 1)
 
 func pause_timer():
@@ -273,8 +275,9 @@ func _on_ready_screen_start() -> void:
 	await ready_screen.fade_out()
 	ready_screen.call_deferred("hide")
 	if GlobalSettings.game_state.reveal_queue.is_empty():
-		resume_timer()
+		_on_tile_map_game_started()
 	else:
+		game_ongoing = true
 		_tile_map.resume()
 
 

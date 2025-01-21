@@ -66,7 +66,7 @@ var _max_tile_updates_per_frame : int
 
 var _revealing : bool = false
 
-var _tile_update_queue : Array[Vector2i]
+var _tile_update_queue : Array[Vector2i] = []
 var _update_queue_mutex : Mutex = Mutex.new()
 var _currently_revealing : Array[Vector2i] = []
 var _currently_revealing_index : int = 0
@@ -158,6 +158,9 @@ func _process(delta: float) -> void:
 	if _tile_update_queue.is_empty() and WorkerThreadPool.is_task_completed(_reveal_worker_thread_id) and _currently_revealing_index >= _currently_revealing.size():
 		set_process(false)
 		_revealing = false
+		_set_block_map_signals(false)
+		_currently_revealing.clear()
+		_currently_revealing_index = 0
 		WorkerThreadPool.wait_for_task_completion(_reveal_worker_thread_id)
 		bulk_reveal_ended.emit()
 		_check_win()
@@ -196,12 +199,10 @@ func _populate_reveal_queue():
 	
 	var reveal_queue : Array[Vector2i] = game_state.reveal_queue.duplicate(true)
 	var buffer_index : int = 0
-	var num_tiles_updated_total : int = 0
-	var num_tiles_updated_frame : int = 0
 	
 	while _revealing and not is_queued_for_deletion():
 		if buffer_index >= reveal_queue.size():
-			game_state.reveal_queue.clear()
+			reveal_queue.clear()
 			break
 		
 		var to_reveal = reveal_queue[buffer_index]
@@ -226,11 +227,10 @@ func _populate_reveal_queue():
 		_tile_update_queue.append(to_reveal)
 		_update_queue_mutex.unlock()
 	
-	game_state.reveal_queue = reveal_queue
+	game_state.reveal_queue.clear()
+	game_state.reveal_queue.append_array(reveal_queue)
 	
 	game_state.set_block_signals(false)
-	
-	#call_deferred("set_physics_process", false)
 
 
 
@@ -487,7 +487,7 @@ func on_tile_revealed_safely(tile_index : Vector2i):
 	decrement_safe_tile_count()
 	
 	if(neighbour_mines == 0):
-		GlobalSettings.game_state.reveal_queue = get_neighbours(tile_index)
+		game_state.reveal_queue = get_neighbours(tile_index)
 		_start_reveal_chain_reaction()
 	else:
 		_check_win()

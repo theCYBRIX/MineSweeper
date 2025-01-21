@@ -170,7 +170,9 @@ func get_num_rows() -> int:
 	return grid_area.size.y
 
 func set_reveal_queue(queue : Array[Vector2i]) -> void:
-	reveal_queue = queue if queue else [] 
+	if not queue:
+		queue = []
+	reveal_queue = queue
 
 func prepare():
 	if initialized:
